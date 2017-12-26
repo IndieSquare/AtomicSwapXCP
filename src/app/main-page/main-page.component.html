@@ -1,0 +1,174 @@
+
+    <nav class="navbar navbar-dark bg-dark">
+      <a class="navbar-brand" href="#">AtomicSwap</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample01" aria-controls="navbarsExample01" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+
+      <div class="collapse navbar-collapse" id="navbarsExample01">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="#">History <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Link</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link disabled" href="#">Disabled</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dropdown</a>
+            <div class="dropdown-menu" aria-labelledby="dropdown01">
+              <a class="dropdown-item" href="#">Action</a>
+              <a class="dropdown-item" href="#">Another action</a>
+              <a class="dropdown-item" href="#">Something else here</a>
+            </div>
+          </li>
+        </ul>
+        <form class="form-inline my-2 my-md-0">
+          <input class="form-control" type="text" placeholder="Search" aria-label="Search">
+        </form>
+      </div>
+    </nav>
+    <div id="outerDiv">
+    <div id="top">
+
+    	 <div class="innerDiv">
+    	<p class="smallTitle">Give</p>
+    	
+    	<div class = "btn-group" >
+   
+   <button type = "button" id="selectButton" class = "btn btn-success dropdown-toggle" data-toggle = "dropdown">
+      {{getGiveChainName()}}
+      <span class = "caret"></span>
+   </button>
+   
+   <ul id="chainsList" class = "dropdown-menu" role = "menu">
+    <li  class="list-group-item" *ngFor="let aChain of getChains()" (click)="selectGiveChain(aChain)">
+    	{{aChain.list_name}}
+    </li>
+   </ul>
+
+
+</div>
+
+    	 <div class = "btn-group">
+   
+   <button type = "button" id="selectButton" class = "btn btn-success dropdown-toggle" data-toggle = "dropdown">
+      {{getGiveTokenName()}}
+      <span class = "caret"></span>
+   </button>
+   
+   <ul id="chainsList" class = "dropdown-menu" role = "menu">
+    <li  class="list-group-item" *ngFor="let aToken of getTokensGive()" (click)="selectGiveToken(aToken)">
+    	{{aToken.name}}
+    </li>
+   </ul>
+
+   
+</div>
+
+    	  <input  id="amountField" type="number" class="form-control" placeholder="amount"   (input)="setGiveAmount($event.target.value)"  aria-describedby="basic-addon1">
+
+    	   </div>
+    	    <div class="innerDiv">
+     	<p class="smallTitle">Get</p>
+    	<div class = "btn-group">
+   
+   <button type = "button" id="selectButton" class = "btn btn-success dropdown-toggle" data-toggle = "dropdown">
+       {{getGetChainName()}}
+      <span class = "caret"></span>
+   </button>
+   
+   <ul id="chainsList" class = "dropdown-menu" role = "menu">
+    <li  class="list-group-item" *ngFor="let aChain of getChains()"  (click)="selectGetChain(aChain)">
+    	{{aChain.list_name}}
+    </li>
+   </ul>
+
+   
+</div>
+    	<div class = "btn-group">
+   
+   <button type = "button" id="selectButton" class = "btn btn-success dropdown-toggle" data-toggle = "dropdown">
+     {{getGetTokenName()}}
+      <span class = "caret"></span>
+   </button>
+   
+   <ul id="chainsList" class = "dropdown-menu" role = "menu">
+    <li  class="list-group-item" *ngFor="let aToken of getTokensGet()" (click)="selectGetToken(aToken)">
+    	{{aToken.name}}
+    </li>
+   </ul>
+
+   
+</div>
+
+    	    <input id="amountField" type="number" class="form-control" placeholder="amount"    (input)="setGetAmount($event.target.value)" aria-describedby="basic-addon1">
+    	   </div>
+
+
+
+    	   
+    </div>
+     <button *ngIf="!loading" type="button" id="checkButton" class="btn btn-success" (click)="updateMatches()">Search Swaps</button> <img *ngIf="loading" id="mySpinner" src="../../assets/images/spinnerBlue.gif" ng-show="loading"   />
+ <div id="online">
+
+ 	<p style="margin: auto; ">Matches:</p>
+
+    	   <ul id="peersList" class="list-group">
+     	<li  class="list-group-item" *ngFor="let aPeer of matches">
+      <div style="display: inline;">
+      	
+         <label class="listDetails">Give&nbsp;{{(aPeer.give_amount / 100000000)}}&nbsp;{{aPeer.give_token}}&nbsp;get&nbsp;{{(aPeer.get_amount / 100000000)}}&nbsp;{{aPeer.get_token}}</label>
+          <div class="listAddress"> {{aPeer.address}} </div>
+         <div style="position:absolute;top:10px;right:5px;">
+            <button    type="button"  class="btn btn-success btn-sm" (click)="swap(aPeer)">swap</button>
+           
+         </div>
+      </div>
+   </li>
+</ul>
+<p  style="margin: auto; ">Online Peers:</p>
+
+    	   <ul id="peersList" class="list-group">
+     	<li  class="list-group-item" *ngFor="let aPeer of getPeers()">
+      <div style="display: inline;">
+      	
+         <label class="listDetails">Give&nbsp;{{(aPeer.give_amount / 100000000)}}&nbsp;{{aPeer.give_token}}&nbsp;get&nbsp;{{(aPeer.get_amount / 100000000)}}&nbsp;{{aPeer.get_token}}</label>
+          <div class="listAddress"> {{aPeer.address}} </div>
+         
+      </div>
+   </li>
+</ul>
+
+    </div>
+    
+</div>
+<!--
+<div class="outerDiv">
+
+	<br>
+	<h1 id="title">Bitcoin Gold Balance Checker</h1>
+ 	<input  id="addressInput" type="text" class="form-control" placeholder="enter bitcoin address"   (input)="checkAddress($event.target.value)" [(ngModel)]="address" aria-describedby="basic-addon1">
+ 	<br>
+ 	<div id="btgAddress" *ngIf="btgAddress.length>0">
+ 		 Bitcoin Gold Address 
+ 	<p >{{btgAddress}}</p>
+ </div>
+ 	  <button *ngIf="!loading" type="button" id="checkButton" class="btn btn-success" (click)="checkBalance()">check balance</button> <img *ngIf="loading" id="mySpinner" src="../../assets/images/spinnerBlue.gif" ng-show="loading"   />
+ 	  	
+ 	  	<p id="error">{{errorMessage}}</p>
+ 	  <div *ngIf="balance.length>0">
+ 	  	<p id="balance">{{balance}}</p>
+ 	  	<p id="fiatBalance">{{fiatBalance}}</p>
+ 	  	<p id="message">Visit <a href="http://bitcoingold.org">bitcoingold.org</a> for info on how to claim your bitcoin gold</p>
+ 	  </div>
+ 	  <div id="bitcoinjImage">
+ 	  	<p>powered by</p>
+ 	   <img id="bitcoinjslogo" src="../../assets/images/bitcoinjslogo.png" style="height:30px" />
+	</div>
+
+ 
+</div>-->

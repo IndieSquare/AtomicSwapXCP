@@ -1,0 +1,96 @@
+ #outerDiv {
+  position: absolute;
+max-height: 100vh;
+ min-height:  100vh;
+   background-color:#e5e5e5;
+ text-align:center; 
+
+ }
+ #top{ 
+ 
+   display: inline-block;
+ }
+  #online{  
+  text-align: center;
+ 
+   display: inline-block;
+ }
+ #peersList{
+  width: 100vw;
+ }
+ .smallTitle{
+   margin: auto;
+ }
+ .innerDiv{ 
+  text-align: center;
+  width: 50%;
+ float:left; 
+ }
+ #amountField{
+  margin: auto;
+  text-align: center;
+  margin-top: 15px;
+  margin-bottom: 10px;
+  width: 80%;
+ }
+  #selectButton{
+  margin-top: 5px; 
+  width: 100%; 
+
+ } 
+ #btn-group{
+ width: 100%; 
+ }
+  #chainsList{
+    max-height: 300px;
+    overflow: auto;
+  }
+   #tokensList{
+    max-height: 300px;
+    overflow: auto;
+  }
+ #title{
+  
+ }
+   #bitcoinjImage{
+ 
+  margin-top: 50px;
+ }
+ .listDetails{
+  float: left;
+  text-align: left;
+  
+ }
+ .listAddress{
+  float: left;
+  text-align: left;
+ }
+ #balance{
+   margin-top: 10px;
+   font-size: 3em;
+ }
+ #message{
+  
+ }
+#error{
+   margin-top: 10px;
+   font-size: 1em;
+ }
+ #mySpinner{
+   margin-top: 15px;
+  width:70px;
+  height:70px;
+ }
+  #btgAddress{
+  margin-top: 10px;
+ } 
+
+ #addressInput{
+  text-align: center;
+  width: 90%;
+  height: 50px;
+  max-width: 400px;
+  display: inline-block;
+  margin-top: 15px;
+ }
+  
