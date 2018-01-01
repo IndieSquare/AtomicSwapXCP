@@ -32,11 +32,25 @@
       </div>
     </nav>
     <div id="outerDiv">
-    <div id="top">
 
+    	<div *ngIf="!connected" class="connectOuter">
+    	 <div class="connectSection">
+    		<div class="connectField">
+    		 	<input  type="test" class="form-control" placeholder="enter wif"  [(ngModel)]="userWif"  aria-describedby="basic-addon1">
+    	 	 	 
+    		</div>
+    			<button *ngIf="!connecting" type="button" id="checkButton" class="btn btn-success" (click)="connect()">Connect</button>
+    			 <img *ngIf="connecting" id="connectSpinner" src="../../assets/images/spinnerBlue.gif" ng-show="loading"   />
+    	 </div>
+    	<p class="userAddress">{{userAddress}}</p>
+    	</div>
+    
+    <div *ngIf="connected">
+    <div id="top">
+ 
     	 <div class="innerDiv">
     	<p class="smallTitle">Give</p>
-    	
+    		<div class="selectButtons">
     	<div class = "btn-group" >
    
    <button type = "button" id="selectButton" class = "btn btn-success dropdown-toggle" data-toggle = "dropdown">
@@ -52,7 +66,7 @@
 
 
 </div>
-
+ 
     	 <div class = "btn-group">
    
    <button type = "button" id="selectButton" class = "btn btn-success dropdown-toggle" data-toggle = "dropdown">
@@ -66,7 +80,7 @@
     </li>
    </ul>
 
-   
+   </div>
 </div>
 
     	  <input  id="amountField" type="number" class="form-control" placeholder="amount"   (input)="setGiveAmount($event.target.value)"  aria-describedby="basic-addon1">
@@ -74,6 +88,8 @@
     	   </div>
     	    <div class="innerDiv">
      	<p class="smallTitle">Get</p>
+
+     	<div class="selectButtons">
     	<div class = "btn-group">
    
    <button type = "button" id="selectButton" class = "btn btn-success dropdown-toggle" data-toggle = "dropdown">
@@ -89,6 +105,7 @@
 
    
 </div>
+ 
     	<div class = "btn-group">
    
    <button type = "button" id="selectButton" class = "btn btn-success dropdown-toggle" data-toggle = "dropdown">
@@ -102,7 +119,7 @@
     </li>
    </ul>
 
-   
+  </div> 
 </div>
 
     	    <input id="amountField" type="number" class="form-control" placeholder="amount"    (input)="setGetAmount($event.target.value)" aria-describedby="basic-addon1">
@@ -112,63 +129,47 @@
 
     	   
     </div>
-     <button *ngIf="!loading" type="button" id="checkButton" class="btn btn-success" (click)="updateMatches()">Search Swaps</button> <img *ngIf="loading" id="mySpinner" src="../../assets/images/spinnerBlue.gif" ng-show="loading"   />
+    
+      <button *ngIf="!loading" type="button" id="checkButton" class="btn btn-success" (click)="advertiseSwap()">Place Swap</button>
+      <img *ngIf="loading" id="mySpinner" src="../../assets/images/spinnerBlue.gif" ng-show="loading"   />
  <div id="online">
 
- 	<p style="margin: auto; ">Matches:</p>
+ 	<p class="ordersTitle">Current Swaps</p>
 
     	   <ul id="peersList" class="list-group">
-     	<li  class="list-group-item" *ngFor="let aPeer of matches">
-      <div style="display: inline;">
+     	<li  class="list-group-item" *ngFor="let aSwapId of getCurrentSwapKeys()">
+     
       	
-         <label class="listDetails">Give&nbsp;{{(aPeer.give_amount / 100000000)}}&nbsp;{{aPeer.give_token}}&nbsp;get&nbsp;{{(aPeer.get_amount / 100000000)}}&nbsp;{{aPeer.get_token}}</label>
-          <div class="listAddress"> {{aPeer.address}} </div>
-         <div style="position:absolute;top:10px;right:5px;">
-            <button    type="button"  class="btn btn-success btn-sm" (click)="swap(aPeer)">swap</button>
-           
-         </div>
-      </div>
+      	 <p class="swapDetails"> Give {{(currentSwaps[aSwapId].give_amount / 100000000)}} {{currentSwaps[aSwapId].give_token }} get {{(currentSwaps[aSwapId].get_amount / 100000000)}} {{currentSwaps[aSwapId].get_token}}</p>
+      
+          <p class="swapStatus"> {{getStatus(currentSwaps[aSwapId].status)}} </p>
+         
+         <img *ngIf="showSwapSpinner(aSwapId)" id="statusSpinner" src="../../assets/images/spinnerBlue.gif" ng-show="loading"   />
+         <button *ngIf="!showSwapSpinner(aSwapId)" type="button" id="deleteButton" class="btn btn-danger" (click)="removeSwap(aSwapId)"></button>
+    
    </li>
 </ul>
-<p  style="margin: auto; ">Online Peers:</p>
+<div *ngIf="getCurrentSwapKeys().length == 0">
+	no swaps
+	</div>
+<p  class="ordersTitle">Orders</p>
 
-    	   <ul id="peersList" class="list-group">
-     	<li  class="list-group-item" *ngFor="let aPeer of getPeers()">
+    	   <ul id="peersList" class="list-group" >
+
+     	<li  class="list-group-item" *ngFor="let aSwap of getOnlineSwaps()">
       <div style="display: inline;">
       	
-         <label class="listDetails">Give&nbsp;{{(aPeer.give_amount / 100000000)}}&nbsp;{{aPeer.give_token}}&nbsp;get&nbsp;{{(aPeer.get_amount / 100000000)}}&nbsp;{{aPeer.get_token}}</label>
-          <div class="listAddress"> {{aPeer.address}} </div>
+       <p class="swapDetails">Give {{(aSwap.swapData.give_amount / 100000000)}} {{aSwap.swapData.give_token}} get {{(aSwap.swapData.get_amount / 100000000)}} {{aSwap.swapData.get_token}}</p> 
+          <p class="swapStatus"> {{aSwap.address}} </p>
          
       </div>
    </li>
 </ul>
-
-    </div>
-    
-</div>
-<!--
-<div class="outerDiv">
-
-	<br>
-	<h1 id="title">Bitcoin Gold Balance Checker</h1>
- 	<input  id="addressInput" type="text" class="form-control" placeholder="enter bitcoin address"   (input)="checkAddress($event.target.value)" [(ngModel)]="address" aria-describedby="basic-addon1">
- 	<br>
- 	<div id="btgAddress" *ngIf="btgAddress.length>0">
- 		 Bitcoin Gold Address 
- 	<p >{{btgAddress}}</p>
- </div>
- 	  <button *ngIf="!loading" type="button" id="checkButton" class="btn btn-success" (click)="checkBalance()">check balance</button> <img *ngIf="loading" id="mySpinner" src="../../assets/images/spinnerBlue.gif" ng-show="loading"   />
- 	  	
- 	  	<p id="error">{{errorMessage}}</p>
- 	  <div *ngIf="balance.length>0">
- 	  	<p id="balance">{{balance}}</p>
- 	  	<p id="fiatBalance">{{fiatBalance}}</p>
- 	  	<p id="message">Visit <a href="http://bitcoingold.org">bitcoingold.org</a> for info on how to claim your bitcoin gold</p>
- 	  </div>
- 	  <div id="bitcoinjImage">
- 	  	<p>powered by</p>
- 	   <img id="bitcoinjslogo" src="../../assets/images/bitcoinjslogo.png" style="height:30px" />
+<div *ngIf="getOnlineSwaps().length == 0">
+	no swaps
 	</div>
 
+    </div>
+    </div>
+</div>
  
-</div>-->

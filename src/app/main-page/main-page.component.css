@@ -3,8 +3,26 @@
 max-height: 100vh;
  min-height:  100vh;
    background-color:#e5e5e5;
- text-align:center; 
+ text-align:center;
+ width: 100vw; 
 
+ }
+ .connectOuter{
+  margin-top: 15px;
+  width: 100vw;
+ }
+ .connectField {
+  display: inline-block; 
+ }
+ .connectField input {
+  width: 60vh;
+  max-width: 300px;
+ }
+ .userAddress{
+  font-size: 0.7em; 
+  color: gray;
+  width: 60vh;
+    max-width: 300px;
  }
  #top{ 
  
@@ -35,9 +53,14 @@ max-height: 100vh;
  }
   #selectButton{
   margin-top: 5px; 
-  width: 100%; 
+  width: 40vw;
+  max-width: 200px; 
 
  } 
+ .ordersTitle{
+  margin: auto; 
+  font-size: 1.1em;
+ }
  #btn-group{
  width: 100%; 
  }
@@ -55,6 +78,38 @@ max-height: 100vh;
    #bitcoinjImage{
  
   margin-top: 50px;
+ }
+  .swapDetails{
+ margin-bottom: 0;
+  text-align: left;
+  font-size: 1em;
+
+  
+ }
+ #deleteButton{
+    float: right; 
+    width: 40px;
+    height: 40px;
+    top: 20%;
+    position: absolute;
+    right: 5px;
+    font-family: fontawesome;
+   
+ }
+ #statusSpinner{
+    float: right; 
+    width: 40px;
+    height: 40px;
+    top: 20%;
+    position: absolute;
+    right: 5px;
+   
+ }
+ .swapStatus{
+  margin-bottom: 0;
+  text-align: left;
+  font-style: italic;
+  
  }
  .listDetails{
   float: left;
@@ -75,6 +130,10 @@ max-height: 100vh;
 #error{
    margin-top: 10px;
    font-size: 1em;
+ }
+  #connectSpinner{ 
+  width:50px;
+  height:50px;
  }
  #mySpinner{
    margin-top: 15px;
