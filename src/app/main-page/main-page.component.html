@@ -145,7 +145,7 @@
           <p class="swapStatus"> {{getStatus(currentSwaps[aSwapId].status)}} </p>
          
          <img *ngIf="showSwapSpinner(aSwapId)" id="statusSpinner" src="../../assets/images/spinnerBlue.gif" ng-show="loading"   />
-         <button *ngIf="!showSwapSpinner(aSwapId)" type="button" id="deleteButton" class="btn btn-danger" (click)="removeSwap(aSwapId)"></button>
+         <button   type="button" id="deleteButton" class="btn btn-danger" (click)="removeSwap(aSwapId)"></button>
     
    </li>
 </ul>

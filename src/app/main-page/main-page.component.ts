@@ -40,6 +40,7 @@ userAddress = "";
 connected = false;
 currentSwaps = {};
 connecting = false;
+CONFIRMATIONS_NUM = 1;
 
 //cV2TbB8kzoa8pv1F7h5Z68x2fykASVqLunaxHyYjDewgRd7XG95g alice wif
 //cQHoaSq5v7AWeqnQSfzth5em73yEL2JySk6mU7hdocXbCqmoyg2p bobs wif
@@ -52,7 +53,7 @@ connecting = false;
 
   connect(){
 
-  	this.userAddress = this.swapLib.getP2SHP2WKHAddress(this.userWif);
+  	this.userAddress = this.swapLib.getAddress(this.userWif);
 
   	console.log(this.userAddress);
 	this.connecting = true;
@@ -66,7 +67,7 @@ connecting = false;
      	 this.persistenceService.set("secretSeedMnemonic",this.userSecretSeedMnemonic , {type: StorageType.LOCAL}); 
     } 
 
-    	if(this.userAddress == "2NDANo9jFdJfhtwu3GhhLY3SjZEtMh1pqCS"){
+    	if(this.userAddress == "2NDANo9jFdJfhtwu3GhhLY3SjZEtMh1pqCS" || this.userAddress == "moJAUvfe8SGbkqnor3xRpuCD4oPJmbNExN"){
 
   		this.currentGetChain = 0;
   		this.currentGiveChain = 0;
@@ -75,7 +76,7 @@ connecting = false;
   		this.getAmount = 0.001;
   		this.giveAmount = 0.001;
   		}
-  		else if(this.userAddress == "2N3Pnu8LwirBEfDgP6URyrPWtYL6Fu23irR"){
+  		else if(this.userAddress == "2N3Pnu8LwirBEfDgP6URyrPWtYL6Fu23irR" || this.userAddress == "mqKy9agnNopat7WAsyzkgrJr5z5JisSzbz"){
   		this.currentGetChain = 0;
   		this.currentGiveChain = 0;
   		this.currentGetToken = "BTC";
@@ -166,11 +167,12 @@ connecting = false;
     		}
 
     			console.log(this.currentSwaps);
-    		
+    		 
+    	 
  			for (var swapId in this.currentSwaps){
    			 	if (this.currentSwaps.hasOwnProperty(swapId)) {
         			var aSwap = this.currentSwaps[swapId];
-
+        			  
         			if(aSwap.status == "a0"){
 
         				 this.peerLib.advertiseSwap(this.userAddress,swapId,aSwap);
@@ -179,14 +181,153 @@ connecting = false;
 
         				 this.broadcastBobs(swapId);
         			}
-  		 
+        			else if(aSwap.status == "5" || aSwap.status == "errorC" ){
+
+        				 this.checkForConfirmation(swapId);
+        			}
+        			else if(aSwap.status == "6a" || aSwap.status == "7" || aSwap.status == "errorBC"){
+        				 
+        				 this.claimToken(swapId);
+        			}
+        			else if(aSwap.status == "6b"){
+        				 
+        				 this.searchForSecret(swapId);
+
+        			}
+        			else if(aSwap.status == "8"){
+        				 
+
+        			}
+        			 
+        			
+  		
   				 
   					 
     			}
 			}
+ 
+
+  }
+
+  claimToken(swapId){
+
+
+  	var tmpthis = this;
+  	var theSwap = this.currentSwaps[swapId];
+
+  	var secret = theSwap.redeemScript.secret;
+  	if(typeof secret == "undefined"){
+  		//is bob so need to wait for alice
+  		//call check for secret;
+  		return;
+
+  	} 
+  	console.log(theSwap);
+  	 
+  	var params = {
+  		"swap_id":swapId,
+  		"hex":theSwap.their_transaction, 
+  		"user_wif":this.userWif,
+  		"secret":secret,
+  		"my_address":theSwap.my_address,
+  		"their_address":theSwap.their_address,
+  		"get_token":theSwap.get_token,
+  		"get_amount":theSwap.get_amount,
+  	}
+ 
+  	this.swapLib.claimToken(params,
+    function successCallback(signedTx){
+    	tmpthis.currentSwaps[swapId].status = "7";
+    	tmpthis.currentSwaps[swapId].claimTx = signedTx;
+    	tmpthis.saveCurrentSwaps();
+
+
+
+    	var params = {
+		"hex":signedTx,
+		"swapId":swapId
+	}
+	 
+	tmpthis.swapLib.broadcastTx(params,
+	
+	function successCallback(txid,swapId){
+    	 
+    	 tmpthis.currentSwaps[swapId].status = "8"; 
+    	 tmpthis.saveCurrentSwaps();
+
+    },
+    function errorCallback(error,swapId){ 
+    	 tmpthis.currentSwaps[swapId].status = "errorBC"; 
+    	 tmpthis.saveCurrentSwaps();
+
+    	 
+    });
+
+    	
+    	 
+
+    },
+    function errorCallback(error){
+    	 tmpthis.currentSwaps[swapId].status = "errorCT";
+    	tmpthis.saveCurrentSwaps();
+
+    	alert("1"+error);
+    	 
+    });
+   
+
+  }
+
+  checkForConfirmation(swapId){
+var tmpthis = this;
+  	var theSwap = this.currentSwaps[swapId];
+ 
+  	this.swapLib.checkConfirmation(theSwap.their_transaction,theSwap.their_address ,
+    function successCallback(confirmation){
+    	
+    	if(confirmation > tmpthis.CONFIRMATIONS_NUM - 1){
+
+    		console.log("confirmations "+confirmation + " "+(tmpthis.CONFIRMATIONS_NUM - 1));
+    		try{
+    		var theSwap = tmpthis.currentSwaps[swapId];
+    		var secret = theSwap.redeemScript.secret;
+    	}
+    	catch(e){
+    		alert(e);
+    	}
+
+  			if(typeof secret == "undefined"){
+  				//is bob so need to wait for secret from alices claim
+    			tmpthis.currentSwaps[swapId].status = "6b";
+    		}else{
+    			//is alice so canclaim with secret
+
+    			tmpthis.currentSwaps[swapId].status = "6a";
+    		}
+    		tmpthis.saveCurrentSwaps();
+
+    		tmpthis.claimToken(swapId);
+    		return;
+
+    	}else{
+    		//setTimeout( tmpthis.checkForConfirmation(swapId), 15000);
+    	}
+    	
+    	 
+
+    },
+    function errorCallback(error){
+    	alert("2"+error);
+    	 	tmpthis.currentSwaps[swapId].status = "errorC";
+    	tmpthis.saveCurrentSwaps();
+
+    	 
+    	 
+    });
 
 
   }
+
   getLastSecretIndex(){
   	var lastIndex = this.persistenceService.get("lastSecretIndexV1",   StorageType.LOCAL);
     if(typeof lastIndex  == "undefined"){
@@ -320,6 +461,7 @@ connecting = false;
   	
   	var swapData = {
   		"status":"a0",
+  		"my_address":this.userAddress,
   		"give_token":this.currentGiveToken,
   		"give_amount":satoshisGiveAmount,
   		"get_token":this.currentGetToken,
@@ -344,6 +486,7 @@ this.peerLib.advertiseSwap(this.userAddress,swapId,swapData);
   
   makeSwap(secretHash,swapId,data){
   	this.currentSwaps[swapId].status = "b2";
+  	this.currentSwaps[swapId].their_address = data.address;
   	this.saveCurrentSwaps();
   	var tmpthis = this;
      console.log("making cont");
@@ -372,7 +515,7 @@ this.peerLib.advertiseSwap(this.userAddress,swapId,swapData);
     	tmpthis.addToRedeemScripts(params);
 
     	console.log("bob hex "+hex);
-    	tmpthis.currentSwaps[swapId].status = "b3";
+    	tmpthis.currentSwaps[swapId].status = "b3"; 
     	tmpthis.saveCurrentSwaps();
     	tmpthis.peerLib.sendHex(swapId,tmpthis.userAddress,hex);
 
@@ -428,13 +571,34 @@ this.peerLib.advertiseSwap(this.userAddress,swapId,swapData);
   		return "broadcasting...";
   	}
   	else if(num == "5"){
-  		return "waiting for confirmation";
+  		return "waiting for confirmation...";
+  	}
+  	else if(num == "6a"){
+  		return "claiming token...";
+  	}
+  	else if(num == "6b"){
+  		return "waiting for other party to reveal secret";
+  	}
+  	else if(num == "7"){
+  		return "broadcasting claim...";
+  	}
+  	else if(num == "8"){
+  		return "waiting for claim confirmation....";
   	}
   	else if(num == "error"){
   		return "error creating transaction";
   	}
   	else if(num == "errorB1"){
   		return "error broadcasting";
+  	}
+  	else if(num == "errorC"){
+  		return "error checking confirmations";
+  	}
+  	else if(num == "errorCT"){
+  		return "error creating claim transaction";
+  	}
+  	else if(num == "errorBC"){
+  		return "error broadcasting claim";
   	}
 
 
@@ -448,8 +612,40 @@ this.peerLib.advertiseSwap(this.userAddress,swapId,swapData);
   	this.saveCurrentSwaps();
 
   }
+
+  searchForSecret(swapId){
+var tmpthis = this;
+  	var aSwap = this.currentSwaps[swapId];
+    	var params = {  
+    		"hex":aSwap.redeemScript.transaction,
+    		"my_address":aSwap.my_address,
+    		"their_address":aSwap.their_address,
+    		"swapId":swapId
+    	}
+
+  	this.swapLib.searchForSecret(params,
+    
+    function successCallback(secret){
+    	console.log("the secret "+secret.toString('hex'));
+
+    	tmpthis.currentSwaps[swapId].status = "6a";
+    	tmpthis.currentSwaps[swapId].redeemScript["secret"] = secret.toString('hex');
+  		tmpthis.saveCurrentSwaps();
+
+  		tmpthis.claimToken(swapId);
+
+    	 
+
+    },
+    function errorCallback(error,swapId){
+     	tmpthis.currentSwaps[swapId].status = "errorS";
+  		tmpthis.saveCurrentSwaps();
+    });
+
+  }
   startSwap(data){
   	
+  	this.currentSwaps[data.swap_id].their_address = data.data.address;
   	this.currentSwaps[data.swap_id].status = "a1";
     this.saveCurrentSwaps();
 
@@ -483,6 +679,7 @@ this.peerLib.advertiseSwap(this.userAddress,swapId,swapData);
 
     	tmpthis.peerLib.continueSwap(swapId,secretHash,tmpthis.userAddress,hex);
 		 tmpthis.currentSwaps[swapId].status = "a2";
+
 		 tmpthis.saveCurrentSwaps();
 
     },
@@ -531,7 +728,7 @@ broadcastBobs(swapId){
 		"swapId":swapId
 	}
 
-	this.swapLib.broadcastInitial(params,
+	this.swapLib.broadcastTx(params,
 	
 	function successCallback(txid,swapId2){
     	 
