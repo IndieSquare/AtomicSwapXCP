@@ -2,7 +2,7 @@
   position: absolute;
 max-height: 100vh;
  min-height:  100vh;
-   background-color:#e5e5e5;
+   background-color:#323131;
  text-align:center;
  width: 100vw; 
 
@@ -23,38 +23,118 @@ max-height: 100vh;
   color: gray;
   width: 60vh;
     max-width: 300px;
+    display: inline-block;
  }
  #top{ 
- 
+ margin-top: 30px;
+ width: 100vw;
+
    display: inline-block;
  }
-  #online{  
+  #lists{  
   text-align: center;
- 
+  margin-top: 30px;
    display: inline-block;
+
+    opacity:0;
+animation:3s ease 0s normal forwards 1 fadein;
+-webkit-animation:3s ease 0s normal forwards 1 fadein;
+ 
+    animation-delay: 1.2s; 
  }
- #peersList{
-  width: 100vw;
+ #swapsList{
+  
  }
  .smallTitle{
    margin: auto;
+   color: white;
  }
- .innerDiv{ 
-  text-align: center;
-  width: 50%;
- float:left; 
+ .smallTitle b{
+   font-family: fontawesome;
+ }
+ .selectParams{ 
+   height: 200px;
+  position: relative;
+   text-align: center;
+   width: 38%;
+  float:left;
+ }
+ #firstBox{
+  opacity:0;
+  animation:1s ease 0s normal forwards 1 fadein;
+-webkit-animation:1s ease 0s normal forwards 1 fadein;
+ 
+ }
+  #secondBox{
+      opacity:0;
+  animation:3s ease 0s normal forwards 1 fadein;
+-webkit-animation:3s ease 0s normal forwards 1 fadein;
+ 
+  
+ }
+ #thirdBox{
+    opacity:0;
+animation:3s ease 0s normal forwards 1 fadein;
+ 
+    animation-delay: 0.6s;
+ }
+ #forthBox{
+  opacity:0;
+animation:3s ease 0s normal forwards 1 fadein;
+-webkit-animation:3s ease 0s normal forwards 1 fadein;
+ 
+    animation-delay: 0.9s; 
+
+ }
+@keyframes fadein{
+    0%{opacity:0} 
+    100%{opacity:1}
+}
+
+@-webkit-keyframes fadein{
+    0%{opacity:0} 
+    100%{opacity:1}
+}
+
+  .iconParams{ 
+   height: 200px;
+  position: relative;
+   text-align: center;
+   width: 4%;
+  float:left; 
+  font-family: fontawesome;
+  font-size: 3em;
+  line-height: 200px;
+  color: white;
+ }
+ #checkButton{
+  background-image: linear-gradient(#6582a7, #5d7492 60%, #5b779a);
+ }
+ #checkButton:focus {outline:0;}
+ .confirmParams{ 
+   height: 200px;
+  position: relative;
+   text-align: center;
+   width: 20%;
+  float:left; 
+ }
+ .placeSwap{
+  margin-bottom: 9px;
+  position: absolute; 
+  bottom: 0;
  }
  #amountField{
   margin: auto;
   text-align: center;
   margin-top: 15px;
   margin-bottom: 10px;
-  width: 80%;
+   width: 33vw; 
+   max-width: 400px;
  }
   #selectButton{
   margin-top: 5px; 
-  width: 40vw;
-  max-width: 200px; 
+  width: 33vw; 
+   max-width: 400px;
 
  } 
  .ordersTitle{
@@ -86,14 +166,35 @@ max-height: 100vh;
 
   
  }
- #deleteButton{
+ #refundButton{
     float: right; 
-    width: 40px;
-    height: 40px;
-    top: 20%;
-    position: absolute;
-    right: 5px;
+    margin-left: 5px;
+
+ }
+  .peersLab{
+    white-space: pre-wrap;       /* css-3 */
+ white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+ white-space: -pre-wrap;      /* Opera 4-6 */
+ white-space: -o-pre-wrap;    /* Opera 7 */
+ word-wrap: break-word;       /* Internet Explorer 5.5+ */
+    float: left;    
+   
+ }
+ .peersLab b{
+    float: right;   
     font-family: fontawesome;
+    color: #83cf61;
+   
+ }
+ #deleteButton{
+    float: right;   
+    font-family: fontawesome;
+   
+ }
+ #leaderIcon{
+    float: left;   
+    font-family: fontawesome;
+    margin-right: 10px;
    
  }
  #statusSpinner{
@@ -106,7 +207,7 @@ max-height: 100vh;
    
  }
  .swapStatus{
-  margin-bottom: 0;
+  margin-bottom: 10px;
   text-align: left;
   font-style: italic;
   
@@ -152,4 +253,53 @@ max-height: 100vh;
   display: inline-block;
   margin-top: 15px;
  }
+
+ .tab {
+  width: 100vw;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.6);
+    background-color: #272B30;
+}
+
+/* Style the buttons that are used to open the tab content */
+.tab button {
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+         color: white;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+    background-color: #aaa;
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+    background-color: #aaa;
+
+}
+
+/* Style the tab content */
+.tabcontent {
+    display: none;
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-top: none;
+
+}
+
+.tabcontent {
+    animation: fadeEffect 1s; /* Fading effect takes 1 second */
+}
+
+/* Go from zero to full opacity */
+@keyframes fadeEffect {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
   

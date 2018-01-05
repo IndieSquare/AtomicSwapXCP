@@ -1,6 +1,7 @@
    "use strict";
 var PeerLib = function() {
-var peers = [];
+var swaps = [];
+var peers = 0;
 var connection;
 var address;
 var controller;
@@ -9,21 +10,40 @@ var controller;
 
  }
 
+  
+  PeerLib.prototype.getOnlinePeers = function(){
+
+  	return peers;
+	
+  }
  
   PeerLib.prototype.getOnlineSwaps = function(){
    
-  	for(var i = 0; i < peers.length;i++){
-  		var aPeer = peers[i];
+  	for(var i = 0; i < swaps.length;i++){
+  		var aSwap = swaps[i];
  
-  		if(aPeer.address == self.address){
+  		if(aSwap.address == self.address){
   				 
-  			peers.splice(i, 1);
+  			swaps.splice(i, 1);
   			
   		}
   	}
 
-  	return peers;
+  	return swaps;
 	
+  }
+
+   function pingServer(){
+  	var jsonData = {
+  		"method":"ping", 
+  	};
+  	var json = JSON.stringify(jsonData);
+  	connection.send(json);
+
+  	setTimeout(function(){
+  		pingServer();
+  	},10000);
+
   }
 
     PeerLib.prototype.continueSwap = function(swapId,secretHash,address,hex){
@@ -101,6 +121,9 @@ PeerLib.prototype.connect = function (controller,address){
         controller.connected = true;
         controller.connecting = false;
         controller.loadCurrentSwaps();
+        setTimeout(function(){
+  			pingServer();
+  		},10000);
     };
      connection.onclose = function(){
      	 controller.connected = false;
@@ -127,8 +150,9 @@ PeerLib.prototype.connect = function (controller,address){
             return;
         }
         
-         if(json.method == "online"){
-         	 peers = json.data;
+         if(json.method == "info"){
+         	 swaps = json.data.swaps;
+         	 peers = json.data.peers;
          	 console.log("method "+json.method); 
          }
          else if(json.method == "swap"){

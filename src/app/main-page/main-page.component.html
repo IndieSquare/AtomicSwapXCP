@@ -1,13 +1,14 @@
 
     <nav class="navbar navbar-dark bg-dark">
-      <a class="navbar-brand" href="#">AtomicSwap</a>
+      <a class="navbar-brand" href="#">Atomic Swap</a>
+     <span *ngIf="connected" class="peersLab">{{getOnlinePeers()}} <b></b></span>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample01" aria-controls="navbarsExample01" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
 
 
       <div class="collapse navbar-collapse" id="navbarsExample01">
-        <ul class="navbar-nav mr-auto">
+       <!-- <ul class="navbar-nav mr-auto">
           <li class="nav-item active">
             <a class="nav-link" href="#">History <span class="sr-only">(current)</span></a>
           </li>
@@ -28,7 +29,8 @@
         </ul>
         <form class="form-inline my-2 my-md-0">
           <input class="form-control" type="text" placeholder="Search" aria-label="Search">
-        </form>
+        </form>-->
+        I can see you...
       </div>
     </nav>
     <div id="outerDiv">
@@ -39,21 +41,21 @@
     		 	<input  type="test" class="form-control" placeholder="enter wif"  [(ngModel)]="userWif"  aria-describedby="basic-addon1">
     	 	 	 
     		</div>
-    			<button *ngIf="!connecting" type="button" id="checkButton" class="btn btn-success" (click)="connect()">Connect</button>
-    			 <img *ngIf="connecting" id="connectSpinner" src="../../assets/images/spinnerBlue.gif" ng-show="loading"   />
+    			<button *ngIf="!connecting" type="button" id="checkButton" class="btn btn-secondary" (click)="connect()">Connect</button>
+    			 <img *ngIf="connecting" id="connectSpinner" src="../../assets/images/loadingEclipse.gif" ng-show="loading"   />
     	 </div>
     	<p class="userAddress">{{userAddress}}</p>
     	</div>
     
     <div *ngIf="connected">
     <div id="top">
- 
-    	 <div class="innerDiv">
-    	<p class="smallTitle">Give</p>
+  
+    	 <div class="selectParams" id="firstBox">
+    	<p class="smallTitle"><b></b>&nbsp;Give token</p>
     		<div class="selectButtons">
     	<div class = "btn-group" >
    
-   <button type = "button" id="selectButton" class = "btn btn-success dropdown-toggle" data-toggle = "dropdown">
+   <button type = "button" id="selectButton" class = "btn btn-primary dropdown-toggle" data-toggle = "dropdown">
       {{getGiveChainName()}}
       <span class = "caret"></span>
    </button>
@@ -69,7 +71,7 @@
  
     	 <div class = "btn-group">
    
-   <button type = "button" id="selectButton" class = "btn btn-success dropdown-toggle" data-toggle = "dropdown">
+   <button type = "button" id="selectButton" class = "btn btn-primary dropdown-toggle" data-toggle = "dropdown">
       {{getGiveTokenName()}}
       <span class = "caret"></span>
    </button>
@@ -86,13 +88,19 @@
     	  <input  id="amountField" type="number" class="form-control" placeholder="amount"   (input)="setGiveAmount($event.target.value)"  aria-describedby="basic-addon1">
 
     	   </div>
-    	    <div class="innerDiv">
-     	<p class="smallTitle">Get</p>
+
+
+
+    	   <div class="iconParams" id="secondBox">
+ 
+</div>
+    	    <div class="selectParams" id="thirdBox">
+     	<p class="smallTitle"><b></b>&nbsp;Get token</p>
 
      	<div class="selectButtons">
     	<div class = "btn-group">
    
-   <button type = "button" id="selectButton" class = "btn btn-success dropdown-toggle" data-toggle = "dropdown">
+   <button type = "button" id="selectButton" class = "btn btn-secondary dropdown-toggle" data-toggle = "dropdown">
        {{getGetChainName()}}
       <span class = "caret"></span>
    </button>
@@ -108,7 +116,7 @@
  
     	<div class = "btn-group">
    
-   <button type = "button" id="selectButton" class = "btn btn-success dropdown-toggle" data-toggle = "dropdown">
+   <button type = "button" id="selectButton" class = "btn btn-secondary dropdown-toggle" data-toggle = "dropdown">
      {{getGetTokenName()}}
       <span class = "caret"></span>
    </button>
@@ -125,36 +133,31 @@
     	    <input id="amountField" type="number" class="form-control" placeholder="amount"    (input)="setGetAmount($event.target.value)" aria-describedby="basic-addon1">
     	   </div>
 
+<div class="confirmParams" id="forthBox">
+ <div class="placeSwap">
 
-
+      <button *ngIf="!loading" type="button" id="checkButton" class="btn btn-success" (click)="advertiseSwap()">Place Swap</button>
+      <img *ngIf="loading" id="mySpinner" src="../../assets/images/loadingRipple.gif" ng-show="loading"   />
+  </div>
     	   
     </div>
-    
-      <button *ngIf="!loading" type="button" id="checkButton" class="btn btn-success" (click)="advertiseSwap()">Place Swap</button>
-      <img *ngIf="loading" id="mySpinner" src="../../assets/images/spinnerBlue.gif" ng-show="loading"   />
- <div id="online">
+     </div>
+ <div id="lists">
 
- 	<p class="ordersTitle">Current Swaps</p>
 
-    	   <ul id="peersList" class="list-group">
-     	<li  class="list-group-item" *ngFor="let aSwapId of getCurrentSwapKeys()">
-     
-      	
-      	 <p class="swapDetails"> Give {{(currentSwaps[aSwapId].give_amount / 100000000)}} {{currentSwaps[aSwapId].give_token }} get {{(currentSwaps[aSwapId].get_amount / 100000000)}} {{currentSwaps[aSwapId].get_token}}</p>
-      
-          <p class="swapStatus"> {{getStatus(currentSwaps[aSwapId].status)}} </p>
-         
-         <img *ngIf="showSwapSpinner(aSwapId)" id="statusSpinner" src="../../assets/images/spinnerBlue.gif" ng-show="loading"   />
-         <button   type="button" id="deleteButton" class="btn btn-danger" (click)="removeSwap(aSwapId)"></button>
-    
-   </li>
-</ul>
-<div *ngIf="getCurrentSwapKeys().length == 0">
+ 	<div class="tab">
+  <button class="tablinks" id="openSwaps" (click)="changeTab($event, 'Openswaps')">Open Swaps</button>
+  <button class="tablinks"  id="currentSwaps" (click)="changeTab($event, 'Currentswaps')">Current Swaps</button>
+  <button class="tablinks" (click)="changeTab($event, 'History')">History</button>
+</div>
+
+<div id="Openswaps" class="tabcontent" >
+<div *ngIf="getOnlineSwaps().length == 0">
 	no swaps
 	</div>
-<p  class="ordersTitle">Orders</p>
+ 
 
-    	   <ul id="peersList" class="list-group" >
+    	   <ul id="swapsList" class="list-group" >
 
      	<li  class="list-group-item" *ngFor="let aSwap of getOnlineSwaps()">
       <div style="display: inline;">
@@ -165,9 +168,54 @@
       </div>
    </li>
 </ul>
-<div *ngIf="getOnlineSwaps().length == 0">
+ 
+	</div>
+
+<div id="Currentswaps" class="tabcontent">
+ 	 <div *ngIf="getCurrentSwapKeys().length == 0">
 	no swaps
 	</div>
+    	   <ul id="swapsList" class="list-group">
+     	<li  class="list-group-item" *ngFor="let aSwapId of getCurrentSwapKeys()">
+     
+      	
+      	 <p class="swapDetails"> Give {{(currentSwaps[aSwapId].give_amount / 100000000)}} {{currentSwaps[aSwapId].give_token }} get {{(currentSwaps[aSwapId].get_amount / 100000000)}} {{currentSwaps[aSwapId].get_token}}</p>
+      
+          <p class="swapStatus"> {{getStatus(currentSwaps[aSwapId].status)}} </p>
+         
+         <img *ngIf="showSwapSpinner(aSwapId)" id="statusSpinner" src="../../assets/images/loadingRipple.gif" ng-show="loading"   />
+
+         
+         <button   type="button" id="deleteButton" class="btn btn-danger" (click)="removeSwap(aSwapId)"></button>
+          <div   *ngIf="isLeader(aSwapId)"  id="leaderIcon"></div >
+            <div    id="leaderIcon">{{getRefundStatus(aSwapId)}}</div >
+    
+   </li>
+</ul>
+</div>
+
+<div id="History" class="tabcontent">
+ 	 <div *ngIf="getHistoryKeys().length == 0">
+	no swaps
+	</div>
+    	   <ul id="swapsList" class="list-group">
+     	<li  class="list-group-item" *ngFor="let aSwapId of getHistoryKeys()">
+     
+      	
+      	 <p class="swapDetails"> Give {{(currentSwaps[aSwapId].give_amount / 100000000)}} {{currentSwaps[aSwapId].give_token }} get {{(currentSwaps[aSwapId].get_amount / 100000000)}} {{currentSwaps[aSwapId].get_token}}</p>
+      
+          <p class="swapStatus"> {{getStatus(currentSwaps[aSwapId].status)}} </p>
+         
+         <img *ngIf="showSwapSpinner(aSwapId)" id="statusSpinner" src="../../assets/images/loadingRipple.gif" ng-show="loading"   />
+
+         
+         <button   type="button" id="deleteButton" class="btn btn-danger" (click)="removeSwap(aSwapId)"></button>
+          <div   *ngIf="isLeader(aSwapId)"  id="leaderIcon"></div >
+            <div    id="leaderIcon">{{getRefundStatus(aSwapId)}}</div >
+    
+   </li>
+</ul>
+</div>
 
     </div>
     </div>
