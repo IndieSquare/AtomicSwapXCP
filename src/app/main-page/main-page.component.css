@@ -159,18 +159,8 @@ animation:3s ease 0s normal forwards 1 fadein;
  
   margin-top: 50px;
  }
-  .swapDetails{
- margin-bottom: 0;
-  text-align: left;
-  font-size: 1em;
-
   
- }
- #refundButton{
-    float: right; 
-    margin-left: 5px;
-
- }
+ 
   .peersLab{
     white-space: pre-wrap;       /* css-3 */
  white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
@@ -186,32 +176,8 @@ animation:3s ease 0s normal forwards 1 fadein;
     color: #83cf61;
    
  }
- #deleteButton{
-    float: right;   
-    font-family: fontawesome;
-   
- }
- #leaderIcon{
-    float: left;   
-    font-family: fontawesome;
-    margin-right: 10px;
-   
- }
- #statusSpinner{
-    float: right; 
-    width: 40px;
-    height: 40px;
-    top: 20%;
-    position: absolute;
-    right: 5px;
-   
- }
- .swapStatus{
-  margin-bottom: 10px;
-  text-align: left;
-  font-style: italic;
-  
- }
+
+
  .listDetails{
   float: left;
   text-align: left;

@@ -38,13 +38,13 @@
     	<div *ngIf="!connected" class="connectOuter">
     	 <div class="connectSection">
     		<div class="connectField">
-    		 	<input  type="test" class="form-control" placeholder="enter wif"  [(ngModel)]="userWif"  aria-describedby="basic-addon1">
+    		 	<input  type="test" class="form-control" placeholder="enter wif"  [(ngModel)]="dataService.userWif"  aria-describedby="basic-addon1">
     	 	 	 
     		</div>
     			<button *ngIf="!connecting" type="button" id="checkButton" class="btn btn-secondary" (click)="connect()">Connect</button>
     			 <img *ngIf="connecting" id="connectSpinner" src="../../assets/images/loadingEclipse.gif" ng-show="loading"   />
     	 </div>
-    	<p class="userAddress">{{userAddress}}</p>
+    	<p class="userAddress">{{dataService.userAddress}}</p>
     	</div>
     
     <div *ngIf="connected">
@@ -160,12 +160,7 @@
     	   <ul id="swapsList" class="list-group" >
 
      	<li  class="list-group-item" *ngFor="let aSwap of getOnlineSwaps()">
-      <div style="display: inline;">
-      	
-       <p class="swapDetails">Give {{(aSwap.swapData.give_amount / 100000000)}} {{aSwap.swapData.give_token}} get {{(aSwap.swapData.get_amount / 100000000)}} {{aSwap.swapData.get_token}}</p> 
-          <p class="swapStatus"> {{aSwap.address}} </p>
-         
-      </div>
+      <app-swap-item [aSwap]=aSwapId [type]="1" [controller]="self"></app-swap-item>
    </li>
 </ul>
  
@@ -177,18 +172,9 @@
 	</div>
     	   <ul id="swapsList" class="list-group">
      	<li  class="list-group-item" *ngFor="let aSwapId of getCurrentSwapKeys()">
-     
-      	
-      	 <p class="swapDetails"> Give {{(currentSwaps[aSwapId].give_amount / 100000000)}} {{currentSwaps[aSwapId].give_token }} get {{(currentSwaps[aSwapId].get_amount / 100000000)}} {{currentSwaps[aSwapId].get_token}}</p>
+     	
+     	 <app-swap-item [swapId]=aSwapId [type]="2" [controller]="self"></app-swap-item>
       
-          <p class="swapStatus"> {{getStatus(currentSwaps[aSwapId].status)}} </p>
-         
-         <img *ngIf="showSwapSpinner(aSwapId)" id="statusSpinner" src="../../assets/images/loadingRipple.gif" ng-show="loading"   />
-
-         
-         <button   type="button" id="deleteButton" class="btn btn-danger" (click)="removeSwap(aSwapId)"></button>
-          <div   *ngIf="isLeader(aSwapId)"  id="leaderIcon"></div >
-            <div    id="leaderIcon">{{getRefundStatus(aSwapId)}}</div >
     
    </li>
 </ul>
@@ -200,19 +186,8 @@
 	</div>
     	   <ul id="swapsList" class="list-group">
      	<li  class="list-group-item" *ngFor="let aSwapId of getHistoryKeys()">
-     
+     <app-swap-item [swapId]=aSwapId [type]="2" [controller]="self"></app-swap-item>
       	
-      	 <p class="swapDetails"> Give {{(currentSwaps[aSwapId].give_amount / 100000000)}} {{currentSwaps[aSwapId].give_token }} get {{(currentSwaps[aSwapId].get_amount / 100000000)}} {{currentSwaps[aSwapId].get_token}}</p>
-      
-          <p class="swapStatus"> {{getStatus(currentSwaps[aSwapId].status)}} </p>
-         
-         <img *ngIf="showSwapSpinner(aSwapId)" id="statusSpinner" src="../../assets/images/loadingRipple.gif" ng-show="loading"   />
-
-         
-         <button   type="button" id="deleteButton" class="btn btn-danger" (click)="removeSwap(aSwapId)"></button>
-          <div   *ngIf="isLeader(aSwapId)"  id="leaderIcon"></div >
-            <div    id="leaderIcon">{{getRefundStatus(aSwapId)}}</div >
-    
    </li>
 </ul>
 </div>

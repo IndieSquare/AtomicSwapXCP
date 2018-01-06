@@ -254,6 +254,7 @@ counterpartyCall("get_unspent_txouts",sendParams).then(function(result) {
 			"asset":params.get_token,
 			"destination":params.my_address,
 			"quantity":params.get_amount,
+			"allow_unconfirmed_inputs":true,
 			"fee":CLAIM_FEE 
 		}
 	}else{
@@ -263,10 +264,11 @@ counterpartyCall("get_unspent_txouts",sendParams).then(function(result) {
 			"destination":params.my_address,
 			"quantity":params.get_amount,
 			"use_enhanced_send":true,
+			"allow_unconfirmed_inputs":true,
 			"fee":CLAIM_FEE
 		}
 	}
-
+	//todo use the correct input so other people cant bombard the p2sh with more outputs
 	counterpartyCall("create_send",sendParams).then(function(unsignedHex) {
 
 	console.log('alice claim token from bob', unsignedHex.result);
@@ -458,6 +460,7 @@ counterpartyCall("get_unspent_txouts",sendParams).then(function(result) {
 			"asset":params.give_token,
 			"destination":params.my_address,
 			"quantity":params.give_amount,
+			"allow_unconfirmed_inputs":true,
 			"fee":CLAIM_FEE 
 		}
 	}else{
@@ -466,6 +469,7 @@ counterpartyCall("get_unspent_txouts",sendParams).then(function(result) {
 			"asset":params.give_token,
 			"destination":params.my_address,
 			"quantity":params.give_amount,
+			"allow_unconfirmed_inputs":true,
 			"use_enhanced_send":true,
 			"fee":CLAIM_FEE
 		}
@@ -546,7 +550,7 @@ SwapLib.prototype.searchForSecret = function (params,callback,error){
 	   console.log("txid"+txid);
 
 	 if(scriptAddress == null){
-	 	mainError("error",params.swapId);
+	 	mainError("scripaddress null error");
 	 	return;
 	 }
 	
@@ -630,7 +634,7 @@ counterpartyCall("search_raw_transactions",sendParams).then(function(result) {
  	return;
 
 }) .catch(function(err) {
-   error(err,params.swapId);
+   error(err);
     })
 	 
 		
@@ -802,20 +806,20 @@ SwapLib.prototype.broadcastTx = function (params,mainCallback,mainError){
 counterpartyCall("getrawtransaction",sendParams).then(function(result) {
 
 if(typeof result.result != "undefined"){
-	mainCallback(txid,params.swapId); //it was broadcast somehow
+	mainCallback(txid); //it was broadcast somehow
 }
 else{
 broadcastTransaction(params.hex,
 			function callback(result){
 			result = JSON.parse(result);
 			console.log(result);
-			mainCallback(result,params.swapId);
+			mainCallback(result);
 
 				 
 
 		},
 		function error(error){
-    		mainError(error,params.swapId);
+    		mainError(error);
 
 		});
 
@@ -826,13 +830,13 @@ broadcastTransaction(params.hex,
 			function callback(result){
 			result = JSON.parse(result);
 			console.log(result);
-			mainCallback(result,params.swapId);
+			mainCallback(result);
 
 				 
 
 		},
 		function error(error){
-    		mainError(error,params.swapId);
+    		mainError(error);
 
 		});
     })
@@ -1008,10 +1012,10 @@ counterpartyCall("get_unspent_txouts",sendParams).then(function(result) {
       		var secretHashString = secretHash.toString("hex");
   		}
   		var scriptHex =  aliceToBobRedeemScript.toString('hex');
-	  callback(signedTx.toHex(),scriptHex,secretString,secretHashString,params.swapId); 
+	  callback(signedTx.toHex(),scriptHex,secretString,secretHashString); 
 
 }) .catch(function(err) {
-       error(err,params.swapId);
+       error(err);
     })   
 
 
@@ -1020,7 +1024,7 @@ counterpartyCall("get_unspent_txouts",sendParams).then(function(result) {
 
 
 }) .catch(function(err) {
-       error(err,params.swapId);
+       error(err);
     }) 
 
  

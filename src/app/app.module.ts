@@ -4,15 +4,18 @@ import { FormsModule } from '@angular/forms';
 import { PersistenceModule } from 'angular-persistence';
 import { HttpModule } from '@angular/http';
 import { AppComponent } from './app.component';
+import { DataService } from './services/data.service'; 
 import { MainPageComponent } from './main-page/main-page.component';
 import { RouterModule, Routes }  from '@angular/router';
+import { SwapItemComponent } from './swap-item/swap-item.component';
 const appRoutes: Routes = [
   { path: 'wif', component: MainPageComponent } 
 ];
 @NgModule({
   declarations: [
     AppComponent,
-    MainPageComponent
+    MainPageComponent,
+    SwapItemComponent
   ],
   imports: [
     BrowserModule,
@@ -24,7 +27,7 @@ const appRoutes: Routes = [
   exports: [
     RouterModule
   ],
-  providers: [],
+  providers: [DataService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

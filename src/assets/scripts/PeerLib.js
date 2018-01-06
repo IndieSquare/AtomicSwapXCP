@@ -160,33 +160,47 @@ PeerLib.prototype.connect = function (controller,address){
          	 console.log(json);
          	 if(json.data.state == "start"){
          	 	console.log("starting swap");
-         	 	self.controller.startSwap(json.data);
+
+         	 	var swapObject = self.controller.dataService.swapObjects[json.data.swap_id];
+         	 	if(typeof swapObject != "undefined"){
+         	 		swapObject.startSwap(json.data);
+         	 	}
          	 }
          	 if(json.data.state == "wait"){
-         	 	 
-         	 	self.controller.startWait(json.data);
+         	 	
+         	 	var swapObject = self.controller.dataService.swapObjects[json.data.swap_id];
+         	 	if(typeof swapObject != "undefined"){
+         	 		swapObject.startWait(json.data);
+         	 	}
          	 }
          	 else if(json.data.state == "make"){
 
 
          	 	console.log("making swap");
          	 	var hex = json.data.hex;
-         	 	if(self.controller.swapLib.verifyHex(hex) == true){
-         	 		self.controller.saveTheirTransaction(json.data.swap_id,hex);
-         	 		self.controller.makeSwap(json.data.secretHash,json.data.swap_id,json.data.data);
+         	 	var swapObject = self.controller.dataService.swapObjects[json.data.swap_id];
+         	 	if(typeof swapObject != "undefined"){
+         	 	if(swapObject.swapLib.verifyHex(hex) == true){//todo
+         	 		swapObject.saveTheirTransaction(hex);
+         	 		swapObject.makeSwap(json.data.secretHash,json.data.data);
 
          	 		
+         	 	}
          	 	}
          	  
          	 }
          	 else if(json.data.state == "check"){
-         	 	self.controller.currentSwaps[json.data.swap_id].status = "a3";
+         	 	
+         	 	var swapObject = self.controller.dataService.swapObjects[json.data.swap_id];
+         	 	if(typeof swapObject != "undefined"){
+         	 	swapObject.dataService.currentSwaps[json.data.swap_id].status = "a3";
          	 	var hex = json.data.hex;
-         	 	if(self.controller.swapLib.verifyHex(hex) == true){
-         	 		self.controller.saveTheirTransaction(json.data.swap_id,hex);
-         	 		self.controller.broadcastBobs(json.data.swap_id);
+         	 	if(swapObject.swapLib.verifyHex(hex) == true){
+         	 		swapObject.saveTheirTransaction(hex);
+         	 		swapObject.broadcastBobs();
          	 		console.log("checking swap "+hex);
          	 	}
+         	 }
 
          	 	 
          	  

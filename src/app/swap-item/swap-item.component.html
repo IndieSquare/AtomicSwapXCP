@@ -1,0 +1,24 @@
+ 
+      <div *ngIf="type==1" style="display: inline;">
+      	
+       <p class="swapDetails">Give {{(aSwap.swapData.give_amount / 100000000)}} {{aSwap.swapData.give_token}} get {{(aSwap.swapData.get_amount / 100000000)}} {{aSwap.swapData.get_token}}</p> 
+          <p class="swapStatus"> {{aSwap.address}} </p>
+         
+      </div>
+ 
+
+      	<div  *ngIf="type==2" >
+      	 <p class="swapDetails"> Give {{(dataService.currentSwaps[swapId].give_amount / 100000000)}} {{dataService.currentSwaps[swapId].give_token }} get {{(dataService.currentSwaps[swapId].get_amount / 100000000)}} {{dataService.currentSwaps[swapId].get_token}}</p>
+      
+          <p class="swapStatus"> {{getStatus(dataService.currentSwaps[swapId].status)}} </p>
+         
+         <img *ngIf="showSwapSpinner(swapId)" id="statusSpinner" src="../../assets/images/loadingRipple.gif" ng-show="loading"   />
+
+         
+         <button   type="button" id="deleteButton" class="btn btn-danger" (click)="removeSwap(swapId)"></button>
+          <div   *ngIf="isLeader(swapId)"  id="leaderIcon"></div >
+            <div    id="leaderIcon">{{getRefundStatus(swapId)}}</div >
+        </div>
+
+
+      
