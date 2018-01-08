@@ -170,10 +170,15 @@ animation:3s ease 0s normal forwards 1 fadein;
     float: left;    
    
  }
- .peersLab b{
+ .peersLabOnline b{
     float: right;   
     font-family: fontawesome;
     color: #83cf61;
+ }
+  .peersLabOffline b{
+    float: right;   
+    font-family: fontawesome;
+    color: grey;
    
  }
 

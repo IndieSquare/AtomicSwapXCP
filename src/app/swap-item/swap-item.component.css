@@ -20,13 +20,21 @@
   font-style: italic;
   
  }
-  #deleteButton{
-    float: right;   
-    font-family: fontawesome;
+ .swapButtons{
+ 	float: left;
+ }
+ #infoButton{ 
+  float: left;  
+    font-family: fontawesome; 
    
  }
- #leaderIcon{
-    float: left;   
+  #deleteButton{ 
+  float: left;  
+    font-family: fontawesome; 
+   
+ }
+ #leaderIcon{  
+ float: left; 
     font-family: fontawesome;
     margin-right: 10px;
    

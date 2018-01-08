@@ -1,7 +1,11 @@
 
     <nav class="navbar navbar-dark bg-dark">
       <a class="navbar-brand" href="#">Atomic Swap</a>
-     <span *ngIf="connected" class="peersLab">{{getOnlinePeers()}} <b></b></span>
+     <span *ngIf="connected" class="peersLabOnline">{{getOnlinePeers()}}&nbsp;<b></b></span>
+     <span *ngIf="!connected" class="peersLabOffline">offline&nbsp;<b></b></span>
+     <button class="navbar-toggler" type="button" (click)="debug()" >
+      Debug
+      </button>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample01" aria-controls="navbarsExample01" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>

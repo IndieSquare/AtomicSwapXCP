@@ -160,6 +160,9 @@ this.self = this;
     		 
   	
   }
+  debug(){
+  	this.dataService.peerLib.debug();
+  }
   loadCurrentSwaps(){
 
   		var currentSwapsString = this.persistenceService.get("currentSwapsV1"+this.dataService.userAddress,   StorageType.LOCAL);
@@ -175,17 +178,23 @@ this.self = this;
 
     			console.log(this.dataService.currentSwaps);
     		 
-    	 
+    	 var showOpenSwaps = true;
  			for (var swapId in this.dataService.currentSwaps){
-   			 	
+   			 	var aSwap = this.dataService.currentSwaps[swapId];
+   			 	if(aSwap.status != "r4" && aSwap.status != "9"){
+   			 		showOpenSwaps = false;
+   			 	}
+ 			 }
 
-			 
+ 			 if(showOpenSwaps == true){
+
 setTimeout(function(){document.getElementById("openSwaps").click();
 	 ;},500)
 			
- 
-
-  }
+ 			 }else{
+ 			 	setTimeout(function(){document.getElementById("currentSwaps").click();
+	 ;},500)
+ 			 }
 
 }
   getOnlinePeers(){
@@ -353,12 +362,9 @@ results[aKey]=aSwap;
   		"get_amount":satoshisGetAmount
   	};
 
-  	this.dataService.currentSwaps[swapId] = swapData;
-  	console.log(this.dataService.currentSwaps)
+  	this.dataService.currentSwaps[swapId] = swapData; 
   	this.dataService.saveCurrentSwaps();
-
-	this.dataService.peerLib.advertiseSwap(this.dataService.userAddress,swapId,swapData);
-
+ 
   	this.currentGetChain = -1;
   	this.currentGiveChain = -1;
   	this.currentGetToken = "";

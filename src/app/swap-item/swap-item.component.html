@@ -9,15 +9,22 @@
 
       	<div  *ngIf="type==2" >
       	 <p class="swapDetails"> Give {{(dataService.currentSwaps[swapId].give_amount / 100000000)}} {{dataService.currentSwaps[swapId].give_token }} get {{(dataService.currentSwaps[swapId].get_amount / 100000000)}} {{dataService.currentSwaps[swapId].get_token}}</p>
-      
-          <p class="swapStatus"> {{getStatus(dataService.currentSwaps[swapId].status)}} </p>
+        <p class="swapStatus">Swap id:{{swapId}} </p>
+          <p class="swapStatus"> {{getStatus()}} </p>
+          <p class="swapStatus"> {{getRefundStatus()}} </p>
          
          <img *ngIf="showSwapSpinner(swapId)" id="statusSpinner" src="../../assets/images/loadingRipple.gif" ng-show="loading"   />
-
-         
-         <button   type="button" id="deleteButton" class="btn btn-danger" (click)="removeSwap(swapId)"></button>
-          <div   *ngIf="isLeader(swapId)"  id="leaderIcon"></div >
-            <div    id="leaderIcon">{{getRefundStatus(swapId)}}</div >
+         <div class="swapButtons">
+         	  <div   *ngIf="isLeader()"  id="leaderIcon"></div >
+         <div class="btn-group btn-group-xs">
+         	
+         	 <button   type="button" id="infoButton" class="btn btn-info btn-sm" (click)="showInfo()"></button>
+    <button   type="button" id="deleteButton" class="btn btn-danger btn-sm" (click)="removeSwap()"></button>
+  </div>
+        
+        
+              
+  </div>
         </div>
 
 

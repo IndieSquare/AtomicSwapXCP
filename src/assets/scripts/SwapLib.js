@@ -6,10 +6,14 @@ var SwapLib = function() {
     var counterpartyAuth = window.btoa(counterpartyUsername + ":" + counterpartyPassword);
 
 
-    var bitcoindUrl = "http://52.243.37.50:18332";
+    var bitcoindUrl = "52.243.37.50:18332";
     var bitcoindUsername = "btcd-rpc";
     var bitcoindPassword = "ruwoh7kae1feiz3Rai8t";
     var bitcoindAuth = window.btoa(bitcoindUsername + ":" + bitcoindPassword);
+
+
+    var bitcoindRPC = new (rpc.createRpcClient())("http://" + bitcoindUsername + ":" + bitcoindPassword + "@" + bitcoindUrl, {errPrefix: 'Bitcoin '});
+
  
  var bitcoin = tools.bitcoin;
  var bip68 = tools.bip68;
@@ -37,8 +41,21 @@ var SwapLib = function() {
 	var seconds = bip68.encode({ seconds: LOCKTIME });
 	console.log("t "+seconds);*/
 
- 
+ /*var sendParams = {
+	"txid":"684714164a5c2bb3c68884d975d121530a0ce5f4b064f5b95c36dc4c2f653f9e",
+	}
 
+
+ 
+bitcoindCall("getrawtransaction",sendParams).then(function(result) {
+	
+	 console.log(result);
+
+}) .catch(function(err) {
+       	 console.error(err);
+    }) */  
+
+ 
  
  
  }
@@ -146,13 +163,14 @@ function getScriptAddressFromHex(hex,theirAddress){
 
  							try{
    										 var add =  bitcoin.address.fromOutputScript(scriptHashOutput(chunk), NETWORK);
+ 
+   										 if(add != theirAddress && scriptAddress == null){
 
-   										 if(add != theirAddress){
-   										 	 scriptAddress = add;
+   										 	 scriptAddress = add; 
    										  
    										 }
  										
-   }
+   								}
       				  catch(e){
 							console.log(e);
       				  }
@@ -213,8 +231,12 @@ var keyPair = bitcoin.ECPair.fromWIF(params.user_wif,NETWORK);
 var secretHash = bitcoin.crypto.hash160(secret);
 var theirPubKey = tools.bitcoin.address.fromBase58Check(params.their_address).hash;
 var myPubKey = tools.bitcoin.address.fromBase58Check(params.my_address).hash;
- 
- var aliceToBobRedeemScript = createRedeemScript(secretHash,theirPubKey,myPubKey,params.leader);
+
+var otherUserLeader = true;
+if(params.leader == true){
+	otherUserLeader = false;
+}
+ var aliceToBobRedeemScript = createRedeemScript(secretHash,theirPubKey,myPubKey,otherUserLeader);
 
  if(SEGWIT){
 
@@ -223,15 +245,15 @@ var aliceToBobRedeemScript = bitcoin.script.witnessScriptHash.output.encode(bitc
 
 }
  
+ 
 var aliceToBobOutputScript =   scriptHashOutput(bitcoin.crypto.hash160(aliceToBobRedeemScript));
 
 var aliceToBobP2SHAddress =  bitcoin.address.fromOutputScript(aliceToBobOutputScript, NETWORK);
 
+
+
 var aliceToBobP2SHAddressCheck = getScriptAddressFromHex(params.hex,params.their_address);
  
-
- 
-
 
 if(aliceToBobP2SHAddress != aliceToBobP2SHAddressCheck){
 	mainError("scripts dont match");
@@ -351,7 +373,7 @@ var chunks= bitcoin.script.decompile(scriptBuffer);
 
 SwapLib.prototype.checkRefund = function (params,callback,error){
 
-
+console.log("check refund");
 //get block
  var tx = bitcoin.Transaction.fromHex(params.hex);
  var txid = tx.getId();
@@ -361,57 +383,58 @@ SwapLib.prototype.checkRefund = function (params,callback,error){
 		"address":params.my_address,
 		"unconfirmed":true
 	}
-
-counterpartyCall("search_raw_transactions",sendParams).then(function(result) {
  var minedTime = -1;
+var confirmed = false;
+	getRawTransaction(txid,true,
 
- for(key in result.result){
- 	var aTx = result.result[key]; 
-  
- 	if(aTx.txid == txid){
+		function success(result){
+			console.log(result);
+result = JSON.parse(result);
+ 		if(typeof result.confirmations != "undefined"){
+ 			 if(result.confirmations > 0){
+ 			 	confirmed = true;
+ 			 }
 
- 		if(typeof aTx.confirmations != "undefined"){
- 			 
- 		 minedTime = aTx.time;
- 		  continue;
- 		}
+ 		 minedTime = result.time;
  		 
- 	}
- }
 
-  
+ 		}
+
+
 if(minedTime != -1){
 
  var dateMined = new Date(minedTime*1000);
  var dateNow = new Date();
 
- var date1_ms = dateMined.getTime();
- var date2_ms = dateNow.getTime();
- var difference_s = (date2_ms - date1_ms) / 1000;
+ var timeMined = dateMined.getTime();
+ var timeNow = dateNow.getTime();
+ var timeSinceMined = (timeNow - timeMined);
 
- var timeDifferenceEst = time - difference_s;
-  console.log(timeDifferenceEst);
- if(timeDifferenceEst < 0){
- 	timeDifferenceEst = 0;
+ 
+
+ var timeLeftEstMs = (time * 1000) - timeSinceMined;
+  console.log(timeLeftEstMs );
+
+ if(timeLeftEstMs  < 0){
+ 	timeLeftEstMs  = 0;
  }
 
 
- callback(timeDifferenceEst);
+ callback(timeLeftEstMs,confirmed);
 
 }
-  
+
+		},
+		function fail(err){
+    		 error(err);
+
+		} 
 
 
-}) .catch(function(err) {
+		);
 
-   error(err);
-    })
+	};
  
-
-  
-
-
-};
 
 SwapLib.prototype.refundToken = function (params,mainCallback,mainError){
 
@@ -540,20 +563,11 @@ counterpartyCall("get_unspent_txouts",sendParams).then(function(result) {
 };
 
 SwapLib.prototype.searchForSecret = function (params,callback,error){
-	var hex = params.hex;
-	var myAddress = params.my_address;
+	 
+	 var scriptAddress = params.script_address;
+ 		
 
-	 var scriptAddress = getScriptAddressFromHex(hex,myAddress);
-	  console.log("scriptAddress:"+scriptAddress);
-	 var tx = bitcoin.Transaction.fromHex(hex);
-	   var txid = tx.getId();
-	   console.log("txid"+txid);
-
-	 if(scriptAddress == null){
-	 	mainError("scripaddress null error");
-	 	return;
-	 }
-	
+	 
 var sendParams = {
 		"address":scriptAddress,
 		"unconfirmed":true
@@ -584,7 +598,7 @@ counterpartyCall("search_raw_transactions",sendParams).then(function(result) {
       	
       	if(address == params.their_address){ //check the output is paying other party
       		
-      		 console.log(tx);
+      		// console.log(tx);
       		 	tx.ins.forEach(function (input, idx) {
       		 		try{
       		 			var secret = bitcoin.script.toStack(input.script)[2];
@@ -643,100 +657,70 @@ counterpartyCall("search_raw_transactions",sendParams).then(function(result) {
 
 };
 
-SwapLib.prototype.checkConfirmation = function (hex,theirAddress,myAddress,callback,error){
+SwapLib.prototype.checkConfirmation = function (hex,callback,error){
 
-	 
-	 var scriptAddress = getScriptAddressFromHex(hex,theirAddress);
-	  console.log("scriptAddress:"+scriptAddress);
-
+	 console.log("check confirm");
 	 var tx = bitcoin.Transaction.fromHex(hex);
 	   var txid = tx.getId();
- console.log("txid "+txid);
-	 if(scriptAddress == null){
-	 	mainError("error");
-	 	return; 
-	 }
-	
-var sendParams = {
-		"address":myAddress,
-		"unconfirmed":true
-	}
+ console.log("txid1 "+txid);
+	  
+getRawTransaction(txid,true,
 
-counterpartyCall("search_raw_transactions",sendParams).then(function(result) {
-console.log("result");
+		function success(result){
+			result = JSON.parse(result); 
 
- 
- for(key in result.result){
- 	var aTx = result.result[key]; 
- 	 console.log(aTx.confirmations+" "+txid+ " "+aTx.txid);
- 	 console.log("  ");
- 	 console.log("  ");
- 	 console.log("  ");
- 	 console.log("  ");
- 	if(aTx.txid == txid){
- 		if(typeof aTx.confirmations != "undefined"){
- 		callback(aTx.confirmations);
- 		 return;
- 		}
- 		else{
- 			return 0;
- 		}
- 	}
- }
- callback(0);
- 	return;
+			if(typeof result.confirmations != "undefined"){
+				callback(result.confirmations);
+ 			 
+ 			 return;
+ 			}
+ 			else{
+ 				callback(0);
+ 				return;
+ 			}
 
-}) .catch(function(err) {
-   error(err);
-    })
-	 
-		
- 
+		},
+		function fail(err){
+    		   error(err);
 
+		},
+
+
+		); 
 
 };
 
-SwapLib.prototype.checkClaimConfirmation = function (their_hex,claimHex,their_address,callback,error){
+SwapLib.prototype.checkClaimConfirmation = function (claimHex,callback,error){
 
-	 
+	 console.log("check claim");
  
 	 var tx = bitcoin.Transaction.fromHex(claimHex);
-	  var scriptAddress = getScriptAddressFromHex(their_hex,their_address);
+	 
 	   var txid = tx.getId();
  
 	
-var sendParams = {
-		"address":scriptAddress,
-		"unconfirmed":true
-	}
+getRawTransaction(txid,true,
 
-counterpartyCall("search_raw_transactions",sendParams).then(function(result) {
-console.log("result");
-
- 
- 
- for(key in result.result){
- 	var aTx = result.result[key]; 
- 
- 	if(aTx.txid == txid){
-
- 		if(typeof aTx.confirmations != "undefined"){
- 		callback(aTx.confirmations);
+		function success(result){
+			console.log(result);
+			result = JSON.parse(result);
+			if(typeof result.confirmations != "undefined"){
+ 		callback(result.confirmations);
  		 return;
  		}
  		else{
- 			return 0;
+ 				callback(0);
+ 			return;
  		}
- 	}
- }
- throw "e";
- callback(0);
- 	return;
 
-}) .catch(function(err) {
-   error(err);
-    })
-	 
+		},
+		function fail(err){
+    		  error(err);
+
+		},
+
+
+		); 
 		
  
 
@@ -744,52 +728,37 @@ console.log("result");
 };
 
 
-SwapLib.prototype.checkRefundConfirmation = function (my_hex,refundHex,my_address,callback,error){
+SwapLib.prototype.checkRefundConfirmation = function (refundHex,callback,error){
 
-	 
- 
+	 console.log("check refund confirmation");
 	 var tx = bitcoin.Transaction.fromHex(refundHex);
-	  var scriptAddress = getScriptAddressFromHex(my_hex,my_address);
+	 
 	   var txid = tx.getId();
  
-	console.log("script address "+scriptAddress);
-	console.log("my address "+my_address);
-	console.log("txid "+txid);
-var sendParams = {
-		"address":scriptAddress,
-		"unconfirmed":true
-	}
+	 
+getRawTransaction(txid,true,
 
-counterpartyCall("search_raw_transactions",sendParams).then(function(result) {
-console.log("result");
-
- 
- 
- for(key in result.result){
- 	var aTx = result.result[key]; 
- 
- 	if(aTx.txid == txid){
-
- 		if(typeof aTx.confirmations != "undefined"){
- 		callback(aTx.confirmations);
+		function success(result){
+		result = JSON.parse(result);
+			if(typeof result.confirmations != "undefined"){
+ 		callback(result.confirmations);
  		 return;
  		}
  		else{
- 			return 0;
+ 				callback(0);
+ 			return;
  		}
- 	}
- }
- throw "e";
- callback(0);
- 	return;
 
-}) .catch(function(err) {
-   error(err);
-    })
-	 
+		},
+		function fail(err){
+    		  error(err);
+
+		},
+
+
+		); 
 		
  
-
 
 };
 
@@ -799,17 +768,17 @@ SwapLib.prototype.broadcastTx = function (params,mainCallback,mainError){
 			var tx = bitcoin.Transaction.fromHex(params.hex);
 		 var txid = tx.getId();
 	 
- var sendParams = {
-		"tx_hash":txid, 
-	}
+ 
+getRawTransaction(txid,true,
 
-counterpartyCall("getrawtransaction",sendParams).then(function(result) {
-
-if(typeof result.result != "undefined"){
+		function success(result){
+			result = JSON.parse(result);
+if(typeof result != "undefined"){
 	mainCallback(txid); //it was broadcast somehow
 }
 else{
 broadcastTransaction(params.hex,
+
 			function callback(result){
 			result = JSON.parse(result);
 			console.log(result);
@@ -818,14 +787,18 @@ broadcastTransaction(params.hex,
 				 
 
 		},
-		function error(error){
-    		mainError(error);
+		function error(err){
+    		mainError(err);
 
 		});
 
 }
 
-}) .catch(function(err) {
+ console.log(result);
+
+		},
+		function fail(error){
+    		
        broadcastTransaction(params.hex,
 			function callback(result){
 			result = JSON.parse(result);
@@ -835,8 +808,8 @@ broadcastTransaction(params.hex,
 				 
 
 		},
-		function error(error){
-    		mainError(error);
+		function error(err){
+    		mainError(err);
 
 		});
     })
@@ -910,6 +883,7 @@ SwapLib.prototype.createSwapTransaction = function (params,callback,error){
 var alicePubKey = tools.bitcoin.address.fromBase58Check(params.alicesAddress).hash;
 var bobPubKey = tools.bitcoin.address.fromBase58Check(params.bobsAddress).hash;
   var aliceToBobRedeemScript = createRedeemScript(secretHash,alicePubKey,bobPubKey,params.leader);
+  var bobToAliceRedeemScript = createRedeemScript(secretHash,bobPubKey,alicePubKey,!params.leader);
  if(SEGWIT){
 
  
@@ -1012,7 +986,7 @@ counterpartyCall("get_unspent_txouts",sendParams).then(function(result) {
       		var secretHashString = secretHash.toString("hex");
   		}
   		var scriptHex =  aliceToBobRedeemScript.toString('hex');
-	  callback(signedTx.toHex(),scriptHex,secretString,secretHashString); 
+	  callback(signedTx.toHex(),scriptHex,secretString,secretHashString,aliceToBobP2SHAddress,bobToAliceRedeemScript); 
 
 }) .catch(function(err) {
        error(err);
@@ -1062,9 +1036,9 @@ var counterpartyCall = function(method,params){
 		 return new Promise(function(resolve, reject) {
      	makePostRequest(counterpartyUrl,counterpartyAuth,method, params,
 
-		function callback(result){
+		function success(result){
 			result = JSON.parse(result);
-			console.log(result);
+		//	console.log(result);
 				if(result.error){
 					reject(result.error.message);
 				}
@@ -1073,8 +1047,8 @@ var counterpartyCall = function(method,params){
 				}
 
 		},
-		function error(error){
-    		reject(error);
+		function fail(err){
+    		reject(err);
 
 		},
 
@@ -1086,41 +1060,13 @@ var counterpartyCall = function(method,params){
 
 	}
 
-	var bitcoindCall = function(method,params){
-	
-	console.log("bitcoindCall ", JSON.stringify(params));
-		 return new Promise(function(resolve, reject) {
-     	makePostRequest(bitcoindUrl,bitcoindAuth,method, params,
-
-		function callback(result){
-			result = JSON.parse(result);
-			console.log(result);
-				if(result.error){
-					reject(result.error.message);
-				}
-				else{
-					resolve(result);
-				}
-
-		},
-		function error(error){
-    		reject(error);
-
-		},
-
-
-		);
-    })
  
-		 
-
-	}
  
 	function broadcastTransaction(hex,callback,error){
 
 	if(NETWORK == bitcoin.networks.testnet){
 		
-			url = "https://api.blockcypher.com/v1/btc/test3/txs/push";
+			url = "https://websocket-atomicswap.herokuapp.com/btcd/sendrawtransaction";
 
 		}else{
 
@@ -1130,7 +1076,7 @@ var counterpartyCall = function(method,params){
 
 
 	 	 var json = JSON.stringify({
-                tx: hex
+                hex: hex
             });
 
 
@@ -1149,7 +1095,7 @@ var counterpartyCall = function(method,params){
   		
   		if (xhr.readyState === 4) {
 
-  		  if (xhr.status === 201) {
+  		  if (xhr.status === 200) {
   		  		//console.log("postResponse "+xhr.responseText);
     		 callback(xhr.responseText);
 
@@ -1173,6 +1119,48 @@ xhr.send(json);
 
 	  
 	}
+
+	function getRawTransaction(txid,verbose,callback,error){
+
+ 	var ver = 0;
+ 	if(verbose == true){
+ 		ver = 1;
+ 	}
+
+		var xhr = new XMLHttpRequest();
+	
+
+		if(NETWORK == bitcoin.networks.testnet){
+			xhr.open("GET", "https://apitestnet.indiesquare.me/v2/transactions/"+txid+"/raw?verbose="+ver, true);
+		}
+		else{
+			xhr.open("GET", "https://api.indiesquare.me/v2/transactions/"+txid+"/raw?verbose="+ver, true);
+		}
+		
+		 
+		 
+		xhr.onload = function (e) {
+  		
+  		if (xhr.readyState === 4) {
+
+  		  if (xhr.status === 200) {
+  		   
+    		 callback(xhr.responseText);
+
+    		} else {
+	console.log("get error "+xhr.responseText);
+    	  error(xhr.responseText);
+
+    		}
+  		}
+};
+xhr.onerror = function (e) {
+	console.log("getError "+JSON.stringify(e));
+ error(e);
+};
+ 
+xhr.send(); 
+    }
 
 	 function makePostRequest(url,auth,method,params,callback,error){
 
@@ -1201,13 +1189,13 @@ xhr.send(json);
 		
 		xhr.setRequestHeader("Content-Type", "application/json");
 		 xhr.setRequestHeader("Authorization", "Basic " + auth);
-		 console.log(auth);
+		 
 		xhr.onload = function (e) {
   		
   		if (xhr.readyState === 4) {
 
   		  if (xhr.status === 200) {
-  		  		console.log("postResponse "+xhr.responseText);
+  		  		//console.log("postResponse "+xhr.responseText);
     		 callback(xhr.responseText);
 
     		} else {

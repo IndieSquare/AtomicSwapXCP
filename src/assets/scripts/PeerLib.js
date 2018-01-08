@@ -33,6 +33,8 @@ var controller;
 	
   }
 
+
+
    function pingServer(){
   	var jsonData = {
   		"method":"ping", 
@@ -43,6 +45,16 @@ var controller;
   	setTimeout(function(){
   		pingServer();
   	},10000);
+
+  }
+
+      PeerLib.prototype.debug = function(){
+  	var jsonData = {
+  		"method":"debug"
+  	};
+  	var json = JSON.stringify(jsonData); 
+  	connection.send(json);
+   
 
   }
 
@@ -57,6 +69,7 @@ var controller;
   		}
   	};
   	var json = JSON.stringify(jsonData);
+  	console.log("continueSwap");
   	console.log(json);
   	connection.send(json);
    
@@ -73,6 +86,7 @@ var controller;
   		}
   	};
   	var json = JSON.stringify(jsonData);
+  	console.log("sendHex");
   	console.log(json);
   	connection.send(json);
    
@@ -139,7 +153,7 @@ PeerLib.prototype.connect = function (controller,address){
 
     // most important part - incoming messages
     connection.onmessage = function (message) {
-         
+       
         // try to parse JSON message. Because we know that the server always returns
         // JSON this should work without any problem but we should make sure that
         // the massage is not chunked or otherwise damaged.
@@ -152,12 +166,11 @@ PeerLib.prototype.connect = function (controller,address){
         
          if(json.method == "info"){
          	 swaps = json.data.swaps;
-         	 peers = json.data.peers;
-         	 console.log("method "+json.method); 
+         	 peers = json.data.peers;  
          }
          else if(json.method == "swap"){
          	  
-         	 console.log(json);
+         	 
          	 if(json.data.state == "start"){
          	 	console.log("starting swap");
 
@@ -170,7 +183,7 @@ PeerLib.prototype.connect = function (controller,address){
          	 	
          	 	var swapObject = self.controller.dataService.swapObjects[json.data.swap_id];
          	 	if(typeof swapObject != "undefined"){
-         	 		swapObject.startWait(json.data);
+         	 		swapObject.startWait();
          	 	}
          	 }
          	 else if(json.data.state == "make"){
@@ -205,7 +218,11 @@ PeerLib.prototype.connect = function (controller,address){
          	 	 
          	  
          	 }
+
          	
+         }
+         else if(json.method == "debug"){
+         	console.log(json.data);
          }
           
  

@@ -29,6 +29,8 @@ export class SwapItemComponent implements OnInit {
 
 
   		this.checkState();
+
+  	 
   }
 
   checkState(){
@@ -65,16 +67,17 @@ export class SwapItemComponent implements OnInit {
         				 this.checkClaimConfirmation();
 
         			} 
-        			else if(aSwap.status == "r2"){
+        			
+        			if(aSwap.refund_status == "r2"){
         				 this.broadcastRefund();
 
         			}
-        			else if(aSwap.status == "r3"){
+        			else if(aSwap.refund_status == "r3" && aSwap.status != "9"){
         				  this.checkRefundConfirmation();
 
         			}
 
-        			if(typeof aSwap.redeem_script != "undefined" && typeof aSwap.redeem_script.transaction != "undefined" && aSwap.status != "9"  && aSwap.status != "r2" && aSwap.status != "r3" && aSwap.status != "r4"){
+        			if(typeof aSwap.redeem_script != "undefined" && typeof aSwap.redeem_script.transaction != "undefined" && aSwap.status != "9"  && aSwap.refund_status != "r2" && aSwap.refund_status != "r3" && aSwap.refund_status != "r4"){
         				this.checkRefund();
         			}
         			
@@ -82,6 +85,10 @@ export class SwapItemComponent implements OnInit {
   		
   				 
 			}
+  }
+  showInfo(){
+  	var theSwap = this.dataService.currentSwaps[this.swapId];
+  	console.log(theSwap);
   }
   checkRefund(){
 console.log("checking refund...");
@@ -92,18 +99,25 @@ console.log("checking refund...");
   		"redeem_script":theSwap.redeem_script.script,
   		"hex":theSwap.redeem_script.transaction,  
   		"my_address":theSwap.my_address, 
+  		"leader":theSwap.leader
   	}
 
 
 
   this.swapLib.checkRefund(params,
-    function successCallback(timeTillRefund){
+    function successCallback(timeTillRefund,confirmed){
 
     	theSwap.redeem_script.time_till_refund = timeTillRefund;
     		tmpthis.dataService.saveCurrentSwaps();
+
+    if(confirmed && typeof theSwap.refund_status == "undefined" ){
+ 		    theSwap.refund_status = "r0";
+  	 	tmpthis.dataService.saveCurrentSwaps();		
+ 	}
+
     if(theSwap.redeem_script.time_till_refund == 0){
- 
-	    theSwap.status = "r1"; 
+	 
+	    theSwap.refund_status = "r1";
   	 	tmpthis.dataService.saveCurrentSwaps();
   	
   	 var newParams = { 
@@ -119,7 +133,7 @@ console.log("checking refund...");
  
   	tmpthis.swapLib.refundToken(newParams,
     function successCallback(signedTx){
-    	tmpthis.dataService.currentSwaps[tmpthis.swapId].status = "r2";
+    	tmpthis.dataService.currentSwaps[tmpthis.swapId].refund_status = "r2";
     	tmpthis.dataService.currentSwaps[tmpthis.swapId].refund_tx = signedTx;
     	tmpthis.dataService.saveCurrentSwaps();
  
@@ -127,7 +141,7 @@ console.log("checking refund...");
  
     },
     function errorCallback(error){
-    	 tmpthis.dataService.currentSwaps[tmpthis.swapId].status = "errorCR";
+    	 tmpthis.dataService.currentSwaps[tmpthis.swapId].refund_status = "errorCR";
     	tmpthis.dataService.saveCurrentSwaps();
 
     	alert("1"+error);
@@ -161,14 +175,15 @@ console.log("checking refund...");
 
 	tmpthis.swapLib.broadcastTx(params,
 	
-	function successCallback(txid,swapId){
+	function successCallback(txid){
     	 
-    	 tmpthis.dataService.currentSwaps[swapId].status = "r3"; 
+    	 tmpthis.dataService.currentSwaps[tmpthis.swapId].refund_status = "r3"; 
+    	  tmpthis.dataService.currentSwaps[tmpthis.swapId].refund_txid = txid;
     	 tmpthis.dataService.saveCurrentSwaps();
 
     },
-    function errorCallback(error,swapId){ 
-    	 tmpthis.dataService.currentSwaps[swapId].status = "errorBR"; 
+    function errorCallback(error){ 
+    	 tmpthis.dataService.currentSwaps[tmpthis.swapId].refund_status = "errorBR"; 
     	 tmpthis.dataService.saveCurrentSwaps();
 
     	 
@@ -180,7 +195,7 @@ console.log("checking refund...");
 var tmpthis = this;
   	var theSwap = this.dataService.currentSwaps[tmpthis.swapId];
  
-  	this.swapLib.checkClaimConfirmation(theSwap.their_transaction,theSwap.claim_tx,theSwap.their_address,
+  	this.swapLib.checkClaimConfirmation(theSwap.claim_tx,
     function successCallback(confirmation){
     	console.log("conf "+confirmation);
     	if(confirmation > tmpthis.dataService.CONFIRMATIONS_NUM - 1){
@@ -215,12 +230,12 @@ var tmpthis = this;
     var tmpthis = this;
   	var theSwap = tmpthis.dataService.currentSwaps[tmpthis.swapId];
  
-  	this.swapLib.checkRefundConfirmation(theSwap.redeem_script.transaction,theSwap.refund_tx,theSwap.my_address,
+  	this.swapLib.checkRefundConfirmation(theSwap.refund_tx,
     function successCallback(confirmation){
     	console.log("conf "+confirmation);
     	if(confirmation > tmpthis.dataService.CONFIRMATIONS_NUM - 1){
 
-    		tmpthis.dataService.currentSwaps[tmpthis.swapId].status = "r4";
+    		tmpthis.dataService.currentSwaps[tmpthis.swapId].refund_status = "r4";
     	 
     		tmpthis.dataService.saveCurrentSwaps();
  
@@ -248,90 +263,136 @@ var tmpthis = this;
    
   	  
   var aSwap = this.dataService.currentSwaps[this.swapId];
-  	if(aSwap.status != "error" && aSwap.status != "9" && aSwap.status != "r4"){
+  	if(aSwap.status != "error" && aSwap.status != "9" && aSwap.refund_status != "r4"){
   		return true;
   	}
   	return false;
   }
 
-  getStatus(num){
-  	if(num == "a0"){
+  getStatus(){
+  	
+  	var aSwap = this.dataService.currentSwaps[this.swapId];
+   	var status = aSwap.status;
+
+  	if(status == "a0"){
   		return "waiting for match...";
   	}
-  	else if(num == "a1"){
+  	else if(status == "a1"){
   		return "creating transaction";
   	}
-  	else if(num == "b1"){
+  	else if(status == "b1"){
   		return "waiting for other party";
   	}
-  	else if(num == "a2"){
+  	else if(status == "a2"){
   		return "waiting for other party";
   	}
-  	else if(num == "b2"){
+  	else if(status == "b2"){
   		return "creating transaction";
   	}
-  	else if(num == "a3"){
+  	else if(status == "a3"){
   		return "checking transaction";
   	}
-  	else if(num == "b3"){
+  	else if(status == "b3"){
   		return "checking transaction";
   	}
-  	else if(num == "4"){
+  	else if(status == "4"){
   		return "broadcasting...";
   	}
-  	else if(num == "5"){
+  	else if(status == "5"){
   		return "waiting for confirmation...";
   	}
-  	else if(num == "6a"){
+  	else if(status == "6a"){
   		return "claiming token...";
   	}
-  	else if(num == "6b"){
+  	else if(status == "6b"){
   		return "waiting for other party to reveal secret";
   	}
-  	else if(num == "7"){
+  	else if(status == "7"){
   		return "broadcasting claim...";
   	}
-  	else if(num == "8"){
+  	else if(status == "8"){
   		return "waiting for claim confirmation....";
   	}
-  	else if(num == "9"){
-  		return "Claim complete!";
+  	else if(status == "9"){
+  		return "Swap complete!";
   	} 
-  	else if(num == "error"){
+  	else if(status == "error"){
   		return "error creating transaction";
   	}
-  	else if(num == "errorB1"){
+  	else if(status == "errorB1"){
   		return "error broadcasting";
   	}
-  	else if(num == "errorC"){
+  	else if(status == "errorC"){
   		return "error checking confirmations";
   	}
-  	else if(num == "errorS"){
+  	else if(status == "errorS"){
   		return "error searching secret";
   	}
-  	else if(num == "errorCT"){
+  	else if(status == "errorCT"){
   		return "error creating claim transaction";
   	}
-  	else if(num == "errorBC"){
+  	else if(status == "errorBC"){
   		return "error broadcasting claim";
   	}
-  	else if(num == "errorCR"){
-  		return "error creating refund transaction";
+
+
+  }
+  getRefundStatus(){
+  	
+  	var aSwap = this.dataService.currentSwaps[this.swapId];
+   	var status = aSwap.status;
+  	var refund_status = aSwap.refund_status;
+
+  	var showTimeTillRefund = true;
+
+  	if(status == "9"){
+  		return "";
   	}
-  	else if(num == "errorBR"){
-  		return "error broadcasting refund transaction";
+
+  	if(refund_status == "errorCR"){
+  		return "error creating refund transaction, trying again...";
   	}
-  	else if(num == "r1"){
-  		return "creating refund transaction";
+  	else if(refund_status == "errorBR"){
+  		return "error broadcasting refund transaction, trying again...";
   	}
-  	else if(num == "r2"){
-  		return "broadcasting refund transaction";
+  	else if(refund_status == "r1"){
+  		return "creating refund transaction, trying again...";
   	}
-  	else if(num == "r3"){
-  		return "waiting for refund confirmation";
+  	else if(refund_status == "r2"){
+  		return "broadcasting refund transaction...";
   	}
-  	else if(num == "r4"){
+  	else if(refund_status == "r3"){
+  		return "waiting for refund confirmation...";
+  	}
+  	else if(refund_status == "r4"){
   		return "refund complete!";
+  	}
+  	else if(refund_status == "r0"){
+
+  		showTimeTillRefund = true;
+  		 
+  	}
+  	else{
+  		showTimeTillRefund = false;
+  		 
+  	}
+
+  	if(showTimeTillRefund){
+  		
+  	var redeemScript = aSwap.redeem_script;
+  	if(typeof redeemScript != "undefined"){
+  	var timeTillRefund = redeemScript.time_till_refund;
+
+   if(typeof  timeTillRefund != "undefined"){
+  	if(typeof  timeTillRefund != "undefined"){
+  		if( timeTillRefund == 0){
+  			return "";
+  		}
+  	}
+  }
+   }
+    
+  		return "Refund in (approx): "+this.getFormattedTime(timeTillRefund);
   	}
 
 
@@ -339,12 +400,12 @@ var tmpthis = this;
   }
 
    searchForSecret(){
-  	 
+  	
 var tmpthis = this;
   	var aSwap = this.dataService.currentSwaps[tmpthis.swapId];
+
     	var params = {  
-    		"hex":aSwap.redeem_script.transaction,
-    		"my_address":aSwap.my_address,
+    		"script_address":aSwap.redeem_script.script_address, 
     		"their_address":aSwap.their_address,
     		"secret_hash":aSwap.redeem_script.secret_hash, 
     	}
@@ -367,10 +428,9 @@ var tmpthis = this;
     	}
 
     },
-    function errorCallback(error,swapId){
-    	console.log("swid"+swapId);
-    	alert(error);
-     	tmpthis.dataService.currentSwaps[swapId].status = "errorS";
+    function errorCallback(error){ 
+    	console.error(error);
+     	tmpthis.dataService.currentSwaps[tmpthis.swapId].status = "errorS";
   		tmpthis.dataService.saveCurrentSwaps();
   		setTimeout(function(){tmpthis.searchForSecret()},10000);
     });
@@ -381,7 +441,7 @@ var tmpthis = this;
 	this.dataService.currentSwaps[this.swapId].their_transaction = hex;
 	this.dataService.saveCurrentSwaps();
 }
- startWait(data){
+ startWait(){
   	this.dataService.currentSwaps[this.swapId].status = "b1";
   	this.dataService.saveCurrentSwaps();
   }
@@ -407,7 +467,7 @@ var tmpthis = this;
 
     this.swapLib.createSwapTransaction(params,
     
-    function successCallback(hex,scriptHex,secret,secretHash){
+    function successCallback(hex,scriptHex,secret,secretHash,scriptAddress,theirScriptAddress){
     	console.log("alice hex "+hex);
     	console.log("secret "+secret);
     	console.log("secretHash "+secretHash);
@@ -417,7 +477,9 @@ var tmpthis = this;
     		"secretHash":secretHash,
     		"hex":hex,
     		"script":scriptHex,
-    		"swapId":tmpthis.swapId
+    		"swapId":tmpthis.swapId,
+    		"address":scriptAddress,
+    		"their_address":theirScriptAddress
     	}
     	tmpthis.addToRedeemScripts(params);
 
@@ -460,14 +522,16 @@ var tmpthis = this;
 
     this.swapLib.createSwapTransaction(params,
     
-    function successCallback(hex,scriptHex,secret,secretHash){
+    function successCallback(hex,scriptHex,secret,secretHash,scriptAddress,theirScriptAddress){
 
     	var params = {
     		"secret":secret,
     		"secretHash":secretHash,
     		"hex":hex,
     		"script":scriptHex,
-    		"swapId":tmpthis.swapId
+    		"swapId":tmpthis.swapId,
+    		"address":scriptAddress,
+    		"theirAddress":theirScriptAddress
     	}
     	tmpthis.addToRedeemScripts(params);
 
@@ -493,7 +557,8 @@ var tmpthis = this;
     		"secret":params.secret,
     		"secret_hash":params.secretHash,
     		"transaction":params.hex,
-    		"script":params.script
+    		"script":params.script,
+    		"script_address":params.address
     	}
     	this.dataService.currentSwaps[this.swapId].redeem_script = redeemScript;
 
@@ -517,7 +582,9 @@ var tmpthis = this;
 	function successCallback(txid){
     	 
     	 tmpthis.dataService.currentSwaps[tmpthis.swapId].status = "5"; 
+    	 tmpthis.dataService.currentSwaps[tmpthis.swapId].their_txid = txid;
     	 tmpthis.dataService.saveCurrentSwaps();
+    	 tmpthis.checkForConfirmation();
 
     },
     function errorCallback(error){
@@ -599,14 +666,15 @@ var tmpthis = this;
 
 	tmpthis.swapLib.broadcastTx(params,
 	
-	function successCallback(txid,swapId){
+	function successCallback(txid){
     	 
-    	 tmpthis.dataService.currentSwaps[swapId].status = "8"; 
+    	 tmpthis.dataService.currentSwaps[tmpthis.swapId].status = "8"; 
+    	 tmpthis.dataService.currentSwaps[tmpthis.swapId].claim_txid = txid;
     	 tmpthis.dataService.saveCurrentSwaps();
 
     },
-    function errorCallback(error,swapId){ 
-    	 tmpthis.dataService.currentSwaps[swapId].status = "errorBC"; 
+    function errorCallback(error){ 
+    	 tmpthis.dataService.currentSwaps[tmpthis.swapId].status = "errorBC"; 
     	 tmpthis.dataService.saveCurrentSwaps();
 
     	 
@@ -614,9 +682,7 @@ var tmpthis = this;
 
   }
 
- 
 
- 
 
 
  checkForConfirmation(){
@@ -624,19 +690,21 @@ var tmpthis = this;
   	var theSwap = this.dataService.currentSwaps[this.swapId];
  	theSwap.status = "5";
     	tmpthis.dataService.saveCurrentSwaps();
-   	tmpthis.swapLib.checkConfirmation(theSwap.redeem_script.transaction,theSwap.their_address ,theSwap.my_address,
+
+   	tmpthis.swapLib.checkConfirmation(theSwap.redeem_script.transaction,
     function successCallback(confirmation){
-    	
+    	 
     	if(confirmation > tmpthis.dataService.CONFIRMATIONS_NUM - 1){
 
     		console.log("confirmations "+confirmation + " "+(tmpthis.dataService.CONFIRMATIONS_NUM - 1));
+    		
     		try{
-    		var theSwap = tmpthis.dataService.currentSwaps[tmpthis.swapId];
-    		var secret = theSwap.redeem_script.secret;
-    	}
-    	catch(e){
-    		alert(e);
-    	}
+    			var theSwap = tmpthis.dataService.currentSwaps[tmpthis.swapId];
+    			var secret = theSwap.redeem_script.secret;
+    		}
+    		catch(e){
+    			alert(e);
+    		}
 
   			if(typeof secret == "undefined"){
   				//is bob so need to wait for secret from alices claim
@@ -646,6 +714,7 @@ var tmpthis = this;
 
     			tmpthis.dataService.currentSwaps[tmpthis.swapId].status = "6a";
     		}
+
     		tmpthis.dataService.saveCurrentSwaps();
 
     		tmpthis.claimToken();
@@ -654,6 +723,7 @@ var tmpthis = this;
     	}else{
     		tmpthis.dataService.currentSwaps[tmpthis.swapId].status = "5";
     	tmpthis.dataService.saveCurrentSwaps();
+    	 
     		 setTimeout( function(){tmpthis.checkForConfirmation()}, 10000);
     	}
     	
@@ -684,23 +754,29 @@ var tmpthis = this;
   	var theSwap = this.dataService.currentSwaps[this.swapId];
   	return theSwap.leader;
   }
+ getFormattedTime(timestamp) {
 
-
-    getRefundStatus(){
-  	var aSwap = this.dataService.currentSwaps[this.swapId];
-  	var redeemScript = aSwap.redeem_script;
-  	if(typeof redeemScript != "undefined"){
-  	var timeTillRefund = redeemScript.time_till_refund;
-
-   if(typeof  timeTillRefund != "undefined"){
-  	if(typeof  timeTillRefund != "undefined"){
-  		if( timeTillRefund == 0){
-  			return "";
-  		}
-  	}
+    
+    
+  
+  var minutes = Math.floor( (timestamp/1000/60) % 60 );
+  var hours = Math.floor( (timestamp/(1000*60*60)) % 24 );
+  var days = Math.floor( timestamp/(1000*60*60*24) );
+   var str = "";
+  if(days > 0){
+  	  str += days+" days";
   }
-   }
-  		return "";
+  if ( hours > 0){
+     str += " "+hours+" hrs";
   }
+  if ( minutes > 0){
+   str +=  " "+minutes+" mins";
+  }
+  
+   return str;
+
+}
+
+    
 
 }
